@@ -1,0 +1,254 @@
+{
+	"name": "categories",
+	"children": [
+		{
+			"search": "domainExact",
+			"category": "Blog",
+			"value": "wordpress.com"
+		}, {
+			"search": "domainExact",
+			"category": "Blog",
+			"value": "Blogspot.com"
+		}, {
+			"search": "domainExact",
+			"category": "Blog",
+			"value": "wordpress.org"
+		}, {
+			"search": "domainExact",
+			"category": "Blog",
+			"value": "tumblr.com"
+		}, {
+			"search": "domainExact",
+			"category": "Blog",
+			"value": "medium.com"
+		}, {
+			"search": "domainExact",
+			"category": "email",
+			"value": "live.com"
+		}, {
+			"search": "domainExact",
+			"category": "email",
+			"value": "gmail.com"
+		}, {
+			"search": "domainExact",
+			"category": "email",
+			"value": "mail.google.com"
+		}, {
+			"search": "domainExact",
+			"category": "email",
+			"value": "inbox.google.com"
+		}, {
+			"search": "domainExact",
+			"category": "email",
+			"value": "hotmail.com"
+		}, {
+			"search": "domainExact",
+			"category": "email",
+			"value": "mailboxapp.com"
+		}, {
+			"search": "domainExact",
+			"category": "email",
+			"value": "mail.yahoo.com"
+		}, {
+			"search": "domainExact",
+			"category": "Other Google Service",
+			"value": "google.com/maps"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "huffingtonpost.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "news.google.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "cnn.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "nytimes.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "washingtonpost.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "foxnews.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "salon.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "newrepublic.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "thedailybeast.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "politico.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "brietbart.com"
+		}, {
+			"search": "domainExact",
+			"category": "News",
+			"value": "fivethirtyeight.com"
+		}, {
+			"search": "domainExact",
+			"category": "Information",
+			"value": "wikipedia.org"
+		}, {
+			"search": "domainExact",
+			"category": "Niche News",
+			"value": "slashdot.org"
+		}, {
+			"search": "domainExact",
+			"category": "Search",
+			"value": "scholar.google.com"
+		}, {
+			"search": "domainExact",
+			"category": "Search",
+			"value": "bing.com"
+		}, {
+			"search": "domainExact",
+			"category": "Search",
+			"value": "baidu.com"
+		}, {
+			"search": "domainExact",
+			"category": "Search",
+			"value": "google.com"
+		}, {
+			"search": "domainExact",
+			"category": "Search",
+			"value": "search.yahoo.com"
+		}, {
+			"search": "domainExact",
+			"category": "Search",
+			"value": "duckduckgo.com"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "reddit.com"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "tumblr.com"
+		}, {
+			"search": "topDomainExact",
+			"category": "Social Media",
+			"value": "blogspot.com"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "facebook.com"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "twitter.com"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "linkedin.com"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "pinterest.com"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "flickr.com"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "imgur.com"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "instagram.com"
+		}, {
+			"search": "domainExact",
+			"category": "Entertainment News",
+			"value": "theonion.com"
+		}, {
+			"search": "domainExact",
+			"category": "Entertainment News",
+			"value": "vice.com"
+		}, {
+			"search": "domainExact",
+			"category": "Entertainment News",
+			"value": "diply.com"
+		}, {
+			"search": "domainExact",
+			"category": "Sports",
+			"value": "espn.go.com"
+		}, {
+			"search": "domainExact",
+			"category": "Entertainment News",
+			"value": "buzzfeed.com"
+		}, {
+			"search": "domainExact",
+			"category": "Sports",
+			"value": "bleacherreport.com"
+		}, {
+			"search": "domainExact",
+			"category": "Entertainment News",
+			"value": "theladbible.com"
+		}, {
+			"search": "domainExact",
+			"category": "Entertainment News",
+			"value": "eonline.com"
+		}, {
+			"search": "domainExact",
+			"category": "Video",
+			"value": "youtube.com"
+		}, {
+			"search": "topDomainExact",
+			"category": "Other Google Service",
+			"value": "google.com"
+		}, {
+			"search": "domainExact",
+			"category": "Video",
+			"value": "netflix.com"
+		}, {
+			"search": "domainExact",
+			"category": "Video",
+			"value": "hulu.com"
+		},{
+			"search": "topDomainExact",
+			"category": "Government",
+			"value": "gov"
+		}, {
+			"search": "topDomainExact",
+			"category": ".com",
+			"value": "com"
+		},{
+			"search": "topDomainExact",
+			"category": ".org",
+			"value": "org"
+		},{
+			"search": "topDomainExact",
+			"category": ".net",
+			"value": "net"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
+			"value": "t.co"
+		}, {
+			"search": "topDomainExact",
+			"category": "Education",
+			"value": "edu"
+		}, {
+			"search": "domainExact",
+			"category": "Other",
+			"value": ""
+		}
+	]
+}

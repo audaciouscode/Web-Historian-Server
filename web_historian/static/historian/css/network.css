@@ -1,0 +1,38 @@
+path.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+marker.marker {
+	fill: #333;
+	stroke: #333;
+}
+
+circle.network  {
+  cursor: move;
+  fill: #ccc;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+/*circle.network:hover {
+	stroke: red;
+}*/
+
+.circle.network.fixed {
+  fill: #f00;
+}
+
+/* for the circles */
+.circle text {
+  font: 10px sans-serif;
+}
+
+/*circle text:hover {
+  stroke: red;
+}*/
+
+/* timeline */
+svg {
+  font: 10px sans-serif;
+}
