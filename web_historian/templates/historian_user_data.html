@@ -4,1033 +4,1101 @@
 
 {% block sidebar %}
     <ul class="nav nav-sidebar">
-        <li id="nav_all_data" class="wh_nav_item active"><a href="#"><span class="glyphicon glyphicon-list"></span> All Data</a></li>
+        <li id="nav_summary" class="wh_nav_item active"><a href="#"><span class="glyphicon glyphicon-sort"></span> Comparison</a></li>
+        <li id="nav_all_data" class="wh_nav_item"><a href="#"><span class="glyphicon glyphicon-list"></span> All Data</a></li>
         <li id="nav_network" class="wh_nav_item"><a href="#"><span class="glyphicon glyphicon-cloud"></span> Network</a></li>
         <li id="nav_sites_visited" class="wh_nav_item"><a href="#"><span class="glyphicon glyphicon-globe"></span> Websites Visited</a></li>
         <li id="nav_search_terms" class="wh_nav_item"><a href="#"><span class="glyphicon glyphicon-search"></span> Search Terms</a></li>
-        
     </ul>
-	<p style="margin-top: 80px;">
-		<label>Start Date</label><br />
-		<input type="text" id="start_date" class="datepicker form-control" disabled="true" />
-	</p>
 
-	<p>
-		<label>End Date</label><br />
-		<input type="text" id="end_date" class="datepicker form-control" disabled="true" />
-	</p>
-	
-	<button id="date_refresh" class="btn btn-primary disabled">Refresh Data</button>
-		
+    <div style="margin-top: 40px;" id="sidebar_progress">
+        <label>Progress</label>
+		<span id="wh_progress_label" style="float: right;"></span>
+		<br />
+		<div class="progress" id="wh_progress">
+			<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;" id="wh_progress_bar"></div>
+		</div>
+    </div>
+
+    <p style="margin-top: 80px;">
+        <label>Start Date</label><br />
+        <input type="text" id="start_date" class="datepicker form-control" disabled="true" />
+    </p>
+
+    <p>
+        <label>End Date</label><br />
+        <input type="text" id="end_date" class="datepicker form-control" disabled="true" />
+    </p>
+    
+    <button id="date_refresh" class="btn btn-primary disabled">Refresh Data</button>
+        
 {% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <div id="wh_toolbar">
-                <label id="wh_progress_label_left" style="float: left; margin-right: 1em; display: inline;">Data Progress:</label>
-                <span id="wh_progress_label" style="float: right; margin-left: 1em; display: inline;"></span>
-                <div class="progress" id="wh_progress" style="display: inline-block;">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;" id="wh_progress_bar"></div>
-                </div>
+            <div id="summary" class="viz_element">
+                <h2>Weekly Comparison</h2>
+                
+                <div>
+                	<label>My Domains Visited: {{ my_domains }} ({{ my_domains_percentage|floatformat:2 }}%)</label>
+					<div class="progress">
+						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ my_domains_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ my_domains_bar }}%"></div>
+					</div>
+				</div>
+
+                <div>
+                	<label>Average Domains Visited: {{ avg_domains }}</label>
+					<div class="progress">
+						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ avg_domains_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ avg_domains_bar }}%"></div>
+					</div>
+				</div>
+
+                <div style="margin-top: 40px;">
+                	<label>My Searches: {{ my_searches }} ({{ my_searches_percentage|floatformat:2 }}%)</label>
+					<div class="progress">
+						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ my_searches_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ my_searches_bar }}%"></div>
+					</div>
+				</div>
+
+                <div>
+                	<label>Average Searches: {{ avg_searches }}</label>
+					<div class="progress">
+						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ avg_searches_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ avg_searches_bar }}%"></div>
+					</div>
+				</div>
+
+                <div style="margin-top: 40px;">
+                	<label>Pages Visited: {{ my_visits }} ({{ my_visits_percentage|floatformat:2 }}%)</label>
+					<div class="progress">
+						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ my_visits_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ my_visits_bar }}%"></div>
+					</div>
+				</div>
+
+                <div>
+                	<label>Average Pages Visited: {{ avg_visits }}</label>
+					<div class="progress">
+						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ avg_visits_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ avg_visits_bar }}%"></div>
+					</div>
+				</div>
             </div>
             <div id="all_data" class="viz_element">
-				<table id="web_historian_table"></table>
-			</div>
+                <table id="web_historian_table"></table>
+            </div>
             <div id="network" class="viz_element">
-            	<div id="viz_network" style="border: thin solid #808080;"></div>
+                <div id="viz_network" style="border: thin solid #808080;"></div>
             </div>
             <div id="sites_visited" class="viz_element">
-				<div class="btn-group" data-toggle="buttons">
-					<button class="btn btn-primary" id="viz_visits_button">
-						All Visits
-					</button> 
-					<button class="btn btn-primary" id="viz_habits_button">
-						Daily Habits
-					</button>
-				</div>
-            	<div id="viz_visted"></div>
+                <div class="btn-group" data-toggle="buttons">
+                    <button class="btn btn-primary" id="viz_visits_button">
+                        All Visits
+                    </button> 
+                    <button class="btn btn-primary" id="viz_habits_button">
+                        Daily Habits
+                    </button>
+                </div>
+                <div id="viz_visted"></div>
             </div>
             <div id="search_terms" class="viz_element">
-            	<div id="viz_search_terms"></div>
+                <div id="viz_search_terms"></div>
             </div>
             <script>
                 var visitsSelected = true;
-			    
-			    var domainForUrl = function(parser) {
-					var reThreeTwoThree = /^.*\.([\w\d_-]*\.[a-zA-Z][a-zA-Z][a-zA-Z]\.[a-zA-Z][a-zA-Z])$/;
-					var reTwoTwoThree = /^.*\.([\w\d_-]*\.[a-zA-Z][a-zA-Z]\.[a-zA-Z][a-zA-Z])$/;
-					var reDefaultDomain = /^.*\.([\w\d_-]*\.[a-zA-Z][a-zA-Z][a-zA-Z]?[a-zA-Z]?)$/;
-
-			    	if (parser.href.indexOf('google.com/maps') != -1) {
-			    		return 'local.google.com';
-			    	} else if (parser.protocol == 'file') {
-			    		return 'Local File';
-			    	} else if (parser.protocol == 'chrome-extension') {
-			    		return 'Chrome Extension';
-			    	} else if (parser.host.indexOf('www.google.com') == 0 || parser.host.indexOf('google.com') == 0) {
-			    		return 'google.com';
-			    	} else if (parser.host.indexOf('www.google.com') != -1) {
-			    		return parser.host;
-			    	} else if (parser.host.indexOf('blogspot.com') != -1) {
-			    		return parser.host;
-					} else if (parser.host.match(reThreeTwoThree)) {
-						return parser.host.replace(reTwoTwoThree, "$1");
-					} else if (parser.host.match(reTwoTwoThree)) {
-						return parser.host.replace(reTwoTwoThree, "$1");
-					} else {
-						return parser.host.replace(reDefaultDomain, "$1");
-					}
-					
-					return parser.host;
-			    };
                 
-            	$(document).ready(function() {
-            		$("li#nav_all_data").click(function() {
-            			$("li.wh_nav_item").removeClass("active");	
-            			$("div.viz_element").hide();
-            			
-            			$("li#nav_all_data").addClass("active");
-            			$("div#all_data").show();
-            		});
+                var domainForUrl = function(parser) {
+                    var reThreeTwoThree = /^.*\.([\w\d_-]*\.[a-zA-Z][a-zA-Z][a-zA-Z]\.[a-zA-Z][a-zA-Z])$/;
+                    var reTwoTwoThree = /^.*\.([\w\d_-]*\.[a-zA-Z][a-zA-Z]\.[a-zA-Z][a-zA-Z])$/;
+                    var reDefaultDomain = /^.*\.([\w\d_-]*\.[a-zA-Z][a-zA-Z][a-zA-Z]?[a-zA-Z]?)$/;
 
-            		$("li#nav_network").click(function() {
-            			$("li.wh_nav_item").removeClass("active");	
-            			$("div.viz_element").hide();
-            			
-            			$("li#nav_network").addClass("active");
-            			$("div#network").show();
-            		});
+                    if (parser.href.indexOf('google.com/maps') != -1) {
+                        return 'local.google.com';
+                    } else if (parser.protocol == 'file') {
+                        return 'Local File';
+                    } else if (parser.protocol == 'chrome-extension') {
+                        return 'Chrome Extension';
+                    } else if (parser.host.indexOf('www.google.com') == 0 || parser.host.indexOf('google.com') == 0) {
+                        return 'google.com';
+                    } else if (parser.host.indexOf('www.google.com') != -1) {
+                        return parser.host;
+                    } else if (parser.host.indexOf('blogspot.com') != -1) {
+                        return parser.host;
+                    } else if (parser.host.match(reThreeTwoThree)) {
+                        return parser.host.replace(reTwoTwoThree, "$1");
+                    } else if (parser.host.match(reTwoTwoThree)) {
+                        return parser.host.replace(reTwoTwoThree, "$1");
+                    } else {
+                        return parser.host.replace(reDefaultDomain, "$1");
+                    }
+                    
+                    return parser.host;
+                };
+                
+                $(document).ready(function() {
+                    $("li#nav_summary").click(function() {
+                        $("li.wh_nav_item").removeClass("active");  
+                        $("div.viz_element").hide();
+                        
+                        $("li#nav_summary").addClass("active");
+                        $("div#summary").show();
+                    });
 
-            		$("li#nav_sites_visited").click(function() {
-            			$("li.wh_nav_item").removeClass("active");	
-            			$("div.viz_element").hide();
-            			
-            			$("li#nav_sites_visited").addClass("active");
-            			$("div#sites_visited").show();
-            		});
-            		
-            		$("li#nav_search_terms").click(function() {
-            			$("li.wh_nav_item").removeClass("active");	
-            			$("div.viz_element").hide();
-            			
-            			$("li#nav_search_terms").addClass("active");
-            			$("div#search_terms").show();
-            		});
-            		
-					var allDetail = function(index, row, element) {
-					  var output = "<div class='row'>" +
-						"  <div class='col-md-2'><strong class='pull-right'>Title:</strong></div>" +
-						"  <div class='col-md-10'>" + row["title"] + "</div>" +
-						"</div>" +
-						"<div class='row'>" +
-						"  <div class='col-md-2'><strong class='pull-right'>Domain:</strong></div>" +
-						"  <div class='col-md-10'>" + row["domain"] + "</div>" +
-						"</div>" +
-						"<div class='row'>" +
-						"  <div class='col-md-2'><strong class='pull-right'>Search Terms:</strong></div>" +
-						"  <div class='col-md-10'>" + row["terms"] + "</div>" +
-						"</div>" +
-						"<div class='row'>" +
-						"  <div class='col-md-2'><strong class='pull-right'>Date:</strong></div>" +
-						"  <div class='col-md-10'>" + row["date"] + "</div>" +
-						"</div>" +
-						"<div class='row'>" +
-						"  <div class='col-md-2'><strong class='pull-right'>URL:</strong></div>" +
-						"  <div class='col-md-10'><a href='" + row["url"] + "' target='_blank'>" + row["url"] + "</a></div>" +
-						"</div>" +
-						"<div class='row'>" +
-						"  <div class='col-md-2'><strong class='pull-right'>ID:</strong></div>" +
-						"  <div class='col-md-10'>" + row["id"] + "</div>" +
-						"</div>" +
-						"<div class='row'>" +
-						"  <div class='col-md-2'><strong class='pull-right'>Reference ID:</strong></div>" +
-						"  <div class='col-md-10'>" + row["reference_id"] + "</div>" +
-						"</div>" +
-						"<div class='row'>" +
-						"  <div class='col-md-2'><strong class='pull-right'>Transition:</strong></div>" +
-						"  <div class='col-md-10'>" + row["transition"] + "</div>" +
-						"</div>";
+                    $("li#nav_all_data").click(function() {
+                        $("li.wh_nav_item").removeClass("active");  
+                        $("div.viz_element").hide();
+                        
+                        $("li#nav_all_data").addClass("active");
+                        $("div#all_data").show();
+                    });
 
-					  return output;
-					};
+                    $("li#nav_network").click(function() {
+                        $("li.wh_nav_item").removeClass("active");  
+                        $("div.viz_element").hide();
+                        
+                        $("li#nav_network").addClass("active");
+                        $("div#network").show();
+                    });
 
-					$('table#web_historian_table').bootstrapTable({
-						columns: [{
-								field: 'domain',
-								title: 'Domain',
-								sortable: true
-							}, {
-								field: 'date',
-								title: 'Date',
-								sortable: true
-							}, {
-								field: 'title',
-								title: 'Title',
-								sortable: true
-							}, {
-								field: 'terms',
-								title: 'Search Terms',
-								sortable: true
-							}, {
-								field: 'transition',
-								title: 'Transition',
-								sortable: true
-						}],
-						data: [],
-						striped: true,
-						pagination: true,
-						search: true,
-						detailView: true,
-						detailFormatter: allDetail,
-						sortable: true,
-						checkboxHeader: false,
-						toolbar: "#wh_toolbar"
+                    $("li#nav_sites_visited").click(function() {
+                        $("li.wh_nav_item").removeClass("active");  
+                        $("div.viz_element").hide();
+                        
+                        $("li#nav_sites_visited").addClass("active");
+                        $("div#sites_visited").show();
+                    });
+                    
+                    $("li#nav_search_terms").click(function() {
+                        $("li.wh_nav_item").removeClass("active");  
+                        $("div.viz_element").hide();
+                        
+                        $("li#nav_search_terms").addClass("active");
+                        $("div#search_terms").show();
+                    });
+                    
+                    var allDetail = function(index, row, element) {
+                      var output = "<div class='row'>" +
+                        "  <div class='col-md-2'><strong class='pull-right'>Title:</strong></div>" +
+                        "  <div class='col-md-10'>" + row["title"] + "</div>" +
+                        "</div>" +
+                        "<div class='row'>" +
+                        "  <div class='col-md-2'><strong class='pull-right'>Domain:</strong></div>" +
+                        "  <div class='col-md-10'>" + row["domain"] + "</div>" +
+                        "</div>" +
+                        "<div class='row'>" +
+                        "  <div class='col-md-2'><strong class='pull-right'>Search Terms:</strong></div>" +
+                        "  <div class='col-md-10'>" + row["terms"] + "</div>" +
+                        "</div>" +
+                        "<div class='row'>" +
+                        "  <div class='col-md-2'><strong class='pull-right'>Date:</strong></div>" +
+                        "  <div class='col-md-10'>" + row["date"] + "</div>" +
+                        "</div>" +
+                        "<div class='row'>" +
+                        "  <div class='col-md-2'><strong class='pull-right'>URL:</strong></div>" +
+                        "  <div class='col-md-10'><a href='" + row["url"] + "' target='_blank'>" + row["url"] + "</a></div>" +
+                        "</div>" +
+                        "<div class='row'>" +
+                        "  <div class='col-md-2'><strong class='pull-right'>ID:</strong></div>" +
+                        "  <div class='col-md-10'>" + row["id"] + "</div>" +
+                        "</div>" +
+                        "<div class='row'>" +
+                        "  <div class='col-md-2'><strong class='pull-right'>Reference ID:</strong></div>" +
+                        "  <div class='col-md-10'>" + row["reference_id"] + "</div>" +
+                        "</div>" +
+                        "<div class='row'>" +
+                        "  <div class='col-md-2'><strong class='pull-right'>Transition:</strong></div>" +
+                        "  <div class='col-md-10'>" + row["transition"] + "</div>" +
+                        "</div>";
+
+                      return output;
+                    };
+
+                    $('table#web_historian_table').bootstrapTable({
+                        columns: [{
+                                field: 'domain',
+                                title: 'Domain',
+                                sortable: true
+                            }, {
+                                field: 'date',
+                                title: 'Date',
+                                sortable: true
+                            }, {
+                                field: 'title',
+                                title: 'Title',
+                                sortable: true
+                            }, {
+                                field: 'terms',
+                                title: 'Search Terms',
+                                sortable: true
+                            }, {
+                                field: 'transition',
+                                title: 'Transition',
+                                sortable: true
+                        }],
+                        data: [],
+                        striped: true,
+                        pagination: true,
+                        search: true,
+                        detailView: true,
+                        detailFormatter: allDetail,
+                        sortable: true,
+                        checkboxHeader: false
 					});
 
-					var totalWidth = $("#web_historian_table").width();
-					
-					var allVisits = [];
-					var latestPoint = null;
-					var earliestPoint = null;
+                    var totalWidth = $("#web_historian_table").width();
+                    
+                    var allVisits = [];
+                    var latestPoint = null;
+                    var earliestPoint = null;
 
-					var loadData = function(url)
-					{
-						$.get(url, function(data) 
-						{
-							$("#wh_progress_label").text((data.page + 1) + " of " + data.pages);
-				
-							var percentage = ((data.page + 1) / data.pages) * 100;
-				
-							$("#wh_progress_bar").width(percentage + "%");
-				
-							var rows = [];
-				
-							for (var i = 0; i < data.visits.length; i++)
-							{
-								var visit = data.visits[i];
+                    var loadData = function(url)
+                    {
+                        $.get(url, function(data) 
+                        {
+                            $("#wh_progress_label").text((data.page + 1) + " of " + data.pages);
+                
+                            var percentage = ((data.page + 1) / data.pages) * 100;
+                
+                            $("#wh_progress_bar").width(percentage + "%");
+                
+                            var rows = [];
+                
+                            for (var i = 0; i < data.visits.length; i++)
+                            {
+                                var visit = data.visits[i];
 
-								var parser = document.createElement('a');
-								parser.href = visit["url"];
-								
-								visit['domain'] = domainForUrl(parser);
-					
-								var row = {};
-					
-								var when = moment(visit["date"]);							
-								
-								if (earliestPoint == null || visit["date"] < earliestPoint) {
-									earliestPoint = visit["date"];
-								}
+                                var parser = document.createElement('a');
+                                parser.href = visit["url"];
+                                
+                                visit['domain'] = domainForUrl(parser);
+                    
+                                var row = {};
+                    
+                                var when = moment(visit["date"]);                           
+                                
+                                if (earliestPoint == null || visit["date"] < earliestPoint) {
+                                    earliestPoint = visit["date"];
+                                }
 
-								if (latestPoint == null || visit["date"] > latestPoint) {
-									latestPoint = visit["date"];
-								}
-							
-								if (parser.protocol != "chrome-extension:" && parser.protocol != "file:") {
-									// Data Table...
-									
-									row["date"] = "<span style='display: none;'>" + when.format() + "</span>" + when.format("MMM D YYYY, h:mm:ss a");
-									row["title"] = visit["title"];
-									row["id"] = visit["visit_id"];
-									row["reference_id"] = visit["parent_id"];
-									row["domain"] = visit['domain'];
-																		
-									row["url"] = visit["url"];
-									row["terms"] = visit["search_terms"];
-					
-									if (visit["transition"] == "auto_bookmark")
-										row["transition"] = "<span class='glyphicon glyphicon-bookmark' aria-hidden='true' data-toggle='tooltip' title='Auto-Bookmark'></span>";
-									else if (visit["transition"] == "link")
-										row["transition"] = "<span class='glyphicon glyphicon-link' aria-hidden='true' data-toggle='tooltip' title='Link'></span>";
-									else if (visit["transition"] == "reload")
-										row["transition"] = "<span class='glyphicon glyphicon-refresh' aria-hidden='true' data-toggle='tooltip' title='Reload'></span>";
-									else if (visit["transition"] == "typed")
-										row["transition"] = "<span class='glyphicon glyphicon-font' aria-hidden='true' data-toggle='tooltip' title='Typed'></span>";
-									else if (visit["transition"] == "form_submit")
-										row["transition"] = "<span class='glyphicon glyphicon-pencil' aria-hidden='true' data-toggle='tooltip' title='Form Submission'></span>";
-									else if (visit["transition"] == "generated")
-										row["transition"] = "<span class='glyphicon glyphicon-cog' aria-hidden='true' data-toggle='tooltip' title='Generated'></span>";
-									else if (visit["transition"] == "toplevel")
-										row["transition"] = "<span class='glyphicon glyphicon-home' aria-hidden='true' data-toggle='tooltip' title='Top Level'></span>";
-									else if (visit["transition"] == "auto_toplevel")
-										row["transition"] = "<span class='glyphicon glyphicon-home' aria-hidden='true' data-toggle='tooltip' title='Top Level'></span>";
-									else if (visit["transition"] == "manual_subframe")
-										row["transition"] = "<span class='glyphicon glyphicon-modal-window' aria-hidden='true' data-toggle='tooltip' title='Manual Subframe'></span>";
-									else if (visit["transition"] == "auto_subframe")
-										row["transition"] = "<span class='glyphicon glyphicon-modal-window' aria-hidden='true' data-toggle='tooltip' title='Auto Subframe'></span>";
-									else
-										row["transition"] = visit["transition"];
+                                if (latestPoint == null || visit["date"] > latestPoint) {
+                                    latestPoint = visit["date"];
+                                }
+                            
+                                if (parser.protocol != "chrome-extension:" && parser.protocol != "file:") {
+                                    // Data Table...
+                                    
+                                    row["date"] = "<span style='display: none;'>" + when.format() + "</span>" + when.format("MMM D YYYY, h:mm:ss a");
+                                    row["title"] = visit["title"];
+                                    row["id"] = visit["visit_id"];
+                                    row["reference_id"] = visit["parent_id"];
+                                    row["domain"] = visit['domain'];
+                                                                        
+                                    row["url"] = visit["url"];
+                                    row["terms"] = visit["search_terms"];
+                    
+                                    if (visit["transition"] == "auto_bookmark")
+                                        row["transition"] = "<span class='glyphicon glyphicon-bookmark' aria-hidden='true' data-toggle='tooltip' title='Auto-Bookmark'></span>";
+                                    else if (visit["transition"] == "link")
+                                        row["transition"] = "<span class='glyphicon glyphicon-link' aria-hidden='true' data-toggle='tooltip' title='Link'></span>";
+                                    else if (visit["transition"] == "reload")
+                                        row["transition"] = "<span class='glyphicon glyphicon-refresh' aria-hidden='true' data-toggle='tooltip' title='Reload'></span>";
+                                    else if (visit["transition"] == "typed")
+                                        row["transition"] = "<span class='glyphicon glyphicon-font' aria-hidden='true' data-toggle='tooltip' title='Typed'></span>";
+                                    else if (visit["transition"] == "form_submit")
+                                        row["transition"] = "<span class='glyphicon glyphicon-pencil' aria-hidden='true' data-toggle='tooltip' title='Form Submission'></span>";
+                                    else if (visit["transition"] == "generated")
+                                        row["transition"] = "<span class='glyphicon glyphicon-cog' aria-hidden='true' data-toggle='tooltip' title='Generated'></span>";
+                                    else if (visit["transition"] == "toplevel")
+                                        row["transition"] = "<span class='glyphicon glyphicon-home' aria-hidden='true' data-toggle='tooltip' title='Top Level'></span>";
+                                    else if (visit["transition"] == "auto_toplevel")
+                                        row["transition"] = "<span class='glyphicon glyphicon-home' aria-hidden='true' data-toggle='tooltip' title='Top Level'></span>";
+                                    else if (visit["transition"] == "manual_subframe")
+                                        row["transition"] = "<span class='glyphicon glyphicon-modal-window' aria-hidden='true' data-toggle='tooltip' title='Manual Subframe'></span>";
+                                    else if (visit["transition"] == "auto_subframe")
+                                        row["transition"] = "<span class='glyphicon glyphicon-modal-window' aria-hidden='true' data-toggle='tooltip' title='Auto Subframe'></span>";
+                                    else
+                                        row["transition"] = visit["transition"];
 
-									rows.push(row);
-									
-									allVisits[visit["visit_id"]] = visit;
-								}
-							}
-					
-							$("#web_historian_table").bootstrapTable('append', rows);
+                                    rows.push(row);
+                                    
+                                    allVisits[visit["visit_id"]] = visit;
+                                }
+                            }
+                    
+                            $("#web_historian_table").bootstrapTable('append', rows);
 
-							if (data.page < (data.pages - 1))
-							{
-								url = url.replace(data.page + '.json', (data.page + 1) + ".json")
-				
-								loadData(url);
-							} else {
-								$.getJSON("/static/historian/js/categories.json", function (cat) {  
-									var filterData = function() {
-										$('[data-toggle="tooltip"]').tooltip();
+                            if (data.page < (data.pages - 1))
+                            {
+                                url = url.replace(data.page + '.json', (data.page + 1) + ".json")
+                
+                                loadData(url);
+                            } else {
+                            	$("div#sidebar_progress").hide();
+                            	
+                                $.getJSON("/static/historian/js/categories.json", function (cat) {  
+                                    var filterData = function() {
+                                        $('[data-toggle="tooltip"]').tooltip();
 
-										var searchWordItems = [];
-										var searchWordQueries = {};
-										var searchWordCounts = {};
-										var stopWords = /^(i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall|http|https|com)$/;
-										
-										var range_start = moment($("#start_date").val(), 'MM/DD/YYYY')
-										var range_end = moment($("#end_date").val(), 'MM/DD/YYYY')
-										
-										range_start.millisecond(0);
-										range_start.second(0);
-										range_start.minute(0);
-										range_start.hour(0);
-										
-										range_start = range_start.valueOf();
+                                        var searchWordItems = [];
+                                        var searchWordQueries = {};
+                                        var searchWordCounts = {};
+                                        var stopWords = /^(i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall|http|https|com)$/;
+                                        
+                                        var range_start = moment($("#start_date").val(), 'MM/DD/YYYY')
+                                        var range_end = moment($("#end_date").val(), 'MM/DD/YYYY')
+                                        
+                                        range_start.millisecond(0);
+                                        range_start.second(0);
+                                        range_start.minute(0);
+                                        range_start.hour(0);
+                                        
+                                        range_start = range_start.valueOf();
 
-										range_end.millisecond(999);
-										range_end.second(59);
-										range_end.minute(59);
-										range_end.hour(23);
+                                        range_end.millisecond(999);
+                                        range_end.second(59);
+                                        range_end.minute(59);
+                                        range_end.hour(23);
 
-										range_end = range_end.valueOf();
+                                        range_end = range_end.valueOf();
 
-										var filteredData = [];
-										
-										for (var i = 0; i < allVisits.length; i++) {
-											var visit = allVisits[i];
-											
-											if (visit != undefined) {
-												if (visit['date'] > range_start && visit['date'] < range_end) {
-													filteredData.push(visit);
-												}
-											}
-										}
-										
-										for (var i = 0; i < filteredData.length; i++) {
-											var visit = filteredData[i];
-									
-											if (visit != undefined) {
-												// Search Terms...
-									
-												if (visit["search_terms"] != undefined && visit["search_terms"] != "") {
-													var query = visit["search_terms"].toLowerCase().trim().replace(/[\"\.,-\/#!$%\^&\*;:{}=\-_`~()]/g, " ");
-													query = query.replace(/\s{2,}/g, " ");
-										
-													var tokens = query.split(" ");
-										
-													$.each(tokens, function(index, value) {
-														if (stopWords.test(value) == false && value != "") {
-															if (searchWordCounts["_" + value] == undefined) {
-																searchWordItems.push(value);
-																searchWordCounts["_" + value] = 0;
-																searchWordQueries["_" + value] = "";
-															}
-											
-															searchWordCounts["_" + value] = searchWordCounts["_" + value] + 1;
-											
-															if (searchWordQueries["_" + value].indexOf(query) == -1) {
-																if (searchWordQueries["_" + value].length > 0) {
-																	searchWordQueries["_" + value] = searchWordQueries["_" + value] + ", ";
-																}
+                                        var filteredData = [];
+                                        
+                                        for (var i = 0; i < allVisits.length; i++) {
+                                            var visit = allVisits[i];
+                                            
+                                            if (visit != undefined) {
+                                                if (visit['date'] > range_start && visit['date'] < range_end) {
+                                                    filteredData.push(visit);
+                                                }
+                                            }
+                                        }
+                                        
+                                        filteredData.sort(function(a, b) {
+                                            if (a['date'] < b['date']) {
+                                                return -1;
+                                            } else if (b['date'] < a['date']) {
+                                                return 1;
+                                            }
+                                            
+                                            return 0;
+                                        });
+                                    
+                                        for (var i = 0; i < filteredData.length; i++) {
+                                            var visit = filteredData[i];
+                                    
+                                            if (visit != undefined) {
+                                                // Search Terms...
+                                    
+                                                if (visit["search_terms"] != undefined && visit["search_terms"] != "") {
+                                                    var query = visit["search_terms"].toLowerCase().trim().replace(/[\"\.,-\/#!$%\^&\*;:{}=\-_`~()]/g, " ");
+                                                    query = query.replace(/\s{2,}/g, " ");
+                                        
+                                                    var tokens = query.split(" ");
+                                        
+                                                    $.each(tokens, function(index, value) {
+                                                        if (stopWords.test(value) == false && value != "") {
+                                                            if (searchWordCounts["_" + value] == undefined) {
+                                                                searchWordItems.push(value);
+                                                                searchWordCounts["_" + value] = 0;
+                                                                searchWordQueries["_" + value] = "";
+                                                            }
+                                            
+                                                            searchWordCounts["_" + value] = searchWordCounts["_" + value] + 1;
+                                            
+                                                            if (searchWordQueries["_" + value].indexOf(query) == -1) {
+                                                                if (searchWordQueries["_" + value].length > 0) {
+                                                                    searchWordQueries["_" + value] = searchWordQueries["_" + value] + ", ";
+                                                                }
 
-																searchWordQueries["_" + value] = searchWordQueries["_" + value] + query;
-															}
-														}
-													});
-												}
-											}
-										}
-						
-										var width = totalWidth;
-										var height = totalWidth * (9 / 16);
-					
-										var words = [];
-					
-										var maxCount = 0;
-					
-										$.each(searchWordItems, function(index, value) {
-											var word = {};
-											word["text"] = value;
-											word["size"] = searchWordCounts["_" + value];
-						
-											if (word["size"] > maxCount) {
-												maxCount = word["size"];
-											}
-						
-											words.push(word);
-										});
+                                                                searchWordQueries["_" + value] = searchWordQueries["_" + value] + query;
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        }
+                        
+                                        var width = totalWidth;
+                                        var height = totalWidth * (9 / 16);
+                    
+                                        var words = [];
+                    
+                                        var maxCount = 0;
+                    
+                                        $.each(searchWordItems, function(index, value) {
+                                            var word = {};
+                                            word["text"] = value;
+                                            word["size"] = searchWordCounts["_" + value];
+                        
+                                            if (word["size"] > maxCount) {
+                                                maxCount = word["size"];
+                                            }
+                        
+                                            words.push(word);
+                                        });
 
-										var fill = d3.scale.category20();
+                                        var fill = d3.scale.category20();
 
-										var draw = function(words) {
-											$("#viz_search_terms").html("");
+                                        var draw = function(words) {
+                                            $("#viz_search_terms").html("");
 
-											var wordTooltip = d3.select("body")
-												.append("div")
-												.style("position", "absolute")
-												.style("z-index", "10")
-												.style("visibility", "hidden")
-												.style("color", "white")
-												.style("padding", "8px")
-												.style("background-color", "rgba(0, 0, 0, 0.75)")
-												.style("border-radius", "6px")
-												.style("font", "12px sans-serif")
-												.text("tooltip");
-						
-											d3.select("#viz_search_terms").append("svg")
-												.attr("width", width)
-												.attr("height", height)
-												.attr("id", "visualization")
-												.append("g")
-												.attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")")
-												.selectAll("text")
-												.data(words)
-												.enter().append("text")
-												.style("font-size", function(d) {
-													return d.size + "px";
-												})
-												.style("font-family", "Impact")
-												.style("fill", function(d, i) {
-													return fill(i);
-												})
-												.attr("text-anchor", "middle")
-												.attr("transform", function(d) {
-													return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-												})
-												.text(function(d) {
-													return d.text;
-												})
-												.on("mouseover", function(d) {
-													wordTooltip.text("Search terms including \"" + d.text + "\": " + searchWordQueries["_" + d.text]);
-													wordTooltip.style("visibility", "visible");
-												})
-												.on("mousemove", function() {
-													return wordTooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
-												})
-												.on("mouseout", function() {
-													return wordTooltip.style("visibility", "hidden");
-												});
-				//								.on("contextmenu", d3.contextMenu(menu, function(){
-				//									tooltip.style("visibility", "hidden");
-				//								}));
-										}
+                                            var wordTooltip = d3.select("body")
+                                                .append("div")
+                                                .style("position", "absolute")
+                                                .style("z-index", "10")
+                                                .style("visibility", "hidden")
+                                                .style("color", "white")
+                                                .style("padding", "8px")
+                                                .style("background-color", "rgba(0, 0, 0, 0.75)")
+                                                .style("border-radius", "6px")
+                                                .style("font", "12px sans-serif")
+                                                .text("tooltip");
+                        
+                                            d3.select("#viz_search_terms").append("svg")
+                                                .attr("width", width)
+                                                .attr("height", height)
+                                                .attr("id", "visualization")
+                                                .append("g")
+                                                .attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")")
+                                                .selectAll("text")
+                                                .data(words)
+                                                .enter().append("text")
+                                                .style("font-size", function(d) {
+                                                    return d.size + "px";
+                                                })
+                                                .style("font-family", "Impact")
+                                                .style("fill", function(d, i) {
+                                                    return fill(i);
+                                                })
+                                                .attr("text-anchor", "middle")
+                                                .attr("transform", function(d) {
+                                                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                                                })
+                                                .text(function(d) {
+                                                    return d.text;
+                                                })
+                                                .on("mouseover", function(d) {
+                                                    wordTooltip.text("Search terms including \"" + d.text + "\": " + searchWordQueries["_" + d.text]);
+                                                    wordTooltip.style("visibility", "visible");
+                                                })
+                                                .on("mousemove", function() {
+                                                    return wordTooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
+                                                })
+                                                .on("mouseout", function() {
+                                                    return wordTooltip.style("visibility", "hidden");
+                                                });
+                //                              .on("contextmenu", d3.contextMenu(menu, function(){
+                //                                  tooltip.style("visibility", "hidden");
+                //                              }));
+                                        }
 
-					
-										d3.layout.cloud().size([width, height])
-											.words(words)
-											.padding(5)
-											.rotate(function() {
-												return 0;
-											})
-											.font("Impact")
-											.fontSize(function(d) {
-												var fontSizeCalc = d.size / maxCount;
-							
-												return (fontSizeCalc * 280) / Math.LN10;
-											})
-											//.fontSize(function(d) { return d.size * 20 })
-											.on("end", draw)
-											.start();
-						
-										$("#viz_search_terms").width(width);
-										$("#viz_search_terms").height(height);
-					
-										// Force graph						
-					
-										var edgeList = {};
-										var edgeKeyList = [];
-										var maxEdgeCount = 0;
-										var sourceNodes = {};
+                    
+                                        d3.layout.cloud().size([width, height])
+                                            .words(words)
+                                            .padding(5)
+                                            .rotate(function() {
+                                                return 0;
+                                            })
+                                            .font("Impact")
+                                            .fontSize(function(d) {
+                                                var fontSizeCalc = d.size / maxCount;
+                            
+                                                return (fontSizeCalc * 280) / Math.LN10;
+                                            })
+                                            //.fontSize(function(d) { return d.size * 20 })
+                                            .on("end", draw)
+                                            .start();
+                        
+                                        $("#viz_search_terms").width(width);
+                                        $("#viz_search_terms").height(height);
+                    
+                                        // Force graph                      
+                    
+                                        var edgeList = {};
+                                        var edgeKeyList = [];
+                                        var maxEdgeCount = 0;
+                                        var sourceNodes = {};
 
-										var parser = document.createElement('a');
+                                        var parser = document.createElement('a');
 
-										var nodes = {};
-								
-										var dateHosts = {};
-										var dateKeys = [];
-									
-										var treeCounts = {};
-										var treeCategories = {};
-										var treeKeys = [];
-						
-										var cats = [];
+                                        var nodes = {};
+                                
+                                        var dateHosts = {};
+                                        var dateKeys = [];
+                                    
+                                        var treeCounts = {};
+                                        var treeCategories = {};
+                                        var treeKeys = [];
+                        
+                                        var cats = [];
 
-										for (var i = 0; i < cat.children.length; i++) {
-											cats.push({search: cat.children[i]["search"], category: cat.children[i]["category"], value: cat.children[i]["value"]});
-										}
-										
-										for (var i = 0; i < filteredData.length; i++) {
-											var visit = filteredData[i];
-							
-											if (visit != undefined) {
-												parser.href = visit["url"];
-												var host = visit['domain'];
-							
-												if (visit["transition"] == "link") {
-													var previous = allVisits[visit["parent_id"]];
-						
-													if (previous != undefined) {
-														if (host != previous['domain']) {
-															var key = previous['domain'] + "----" + host;
+                                        for (var i = 0; i < cat.children.length; i++) {
+                                            cats.push({search: cat.children[i]["search"], category: cat.children[i]["category"], value: cat.children[i]["value"]});
+                                        }
+                                        
+                                        for (var i = 0; i < filteredData.length; i++) {
+                                            var visit = filteredData[i];
+                            
+                                            if (visit != undefined) {
+                                                parser.href = visit["url"];
+                                                var host = visit['domain'];
+                            
+                                                if (visit["transition"] == "link" && i > 0) {
+                                                    var previous = filteredData[i - 1];
+                        
+                                                    if (previous != undefined) {
+                                                        if (host != previous['domain'] && (visit['date'] - previous['date']) < (5 * 60)) {
+                                                            var key = previous['domain'] + "----" + host;
 
-															if (edgeList[key] == undefined) {
-																edgeList[key] = {
-																	source: previous['domain'],
-																	target: host
-																};
-									
-																edgeList[key].value = 0;
-									
-																edgeKeyList.push(key);
-															}
+                                                            if (edgeList[key] == undefined) {
+                                                                edgeList[key] = {
+                                                                    source: previous['domain'],
+                                                                    target: host
+                                                                };
+                                    
+                                                                edgeList[key].value = 0;
+                                    
+                                                                edgeKeyList.push(key);
+                                                            }
 
-															edgeList[key].value += 1;
-								
-															if (maxEdgeCount < edgeList[key].value) {
-																maxEdgeCount = edgeList[key].value;
-															}
-								
-															if (sourceNodes[previous['domain']] == undefined) {
-																sourceNodes[previous['domain']] = 0;
-															}
-								
-															sourceNodes[previous['domain']] = sourceNodes[previous['domain']] + 1;
-								
-															if (nodes[host] == undefined) {
-																var thisCat = undefined;
-											
-																for (var j = 0; j < cat.children.length; j++) {
-																	var category = cat.children[j];
-												
-																	if (thisCat == undefined && visit["url"].indexOf(category.value) != -1) {
-																		thisCat = category.category;
-																	}
-																}
-											
-																if (thisCat == undefined) {
-																	thisCat = "Other";
-																}
+                                                            edgeList[key].value += 1;
+                                
+                                                            if (maxEdgeCount < edgeList[key].value) {
+                                                                maxEdgeCount = edgeList[key].value;
+                                                            }
+                                
+                                                            if (sourceNodes[previous['domain']] == undefined) {
+                                                                sourceNodes[previous['domain']] = 0;
+                                                            }
+                                
+                                                            sourceNodes[previous['domain']] = sourceNodes[previous['domain']] + 1;
+                                
+                                                            if (nodes[host] == undefined) {
+                                                                var thisCat = undefined;
+                                            
+                                                                for (var j = 0; j < cat.children.length; j++) {
+                                                                    var category = cat.children[j];
+                                                
+                                                                    if (thisCat == undefined && visit["url"].indexOf(category.value) != -1) {
+                                                                        thisCat = category.category;
+                                                                    }
+                                                                }
+                                            
+                                                                if (thisCat == undefined) {
+                                                                    thisCat = "Other";
+                                                                }
 
-																nodes[host]  = {
-																	name: host,
-																	category: thisCat
-																};
-															}
+                                                                nodes[host]  = {
+                                                                    name: host,
+                                                                    category: thisCat
+                                                                };
+                                                            }
 
-															if (nodes[previous['domain']] == undefined) {
-																var thisCat = undefined;
-							
-																for (var j = 0; j < cat.children.length; j++) {
-																	var category = cat.children[j];
-												
-																	if (thisCat == undefined && previous["url"].indexOf(category.value) != -1) {
-																		thisCat = category.category;
-																	}
-																}
-											
-																if (thisCat == undefined) {
-																	thisCat = "Other";
-																}
+                                                            if (nodes[previous['domain']] == undefined) {
+                                                                var thisCat = undefined;
+                            
+                                                                for (var j = 0; j < cat.children.length; j++) {
+                                                                    var category = cat.children[j];
+                                                
+                                                                    if (thisCat == undefined && previous["url"].indexOf(category.value) != -1) {
+                                                                        thisCat = category.category;
+                                                                    }
+                                                                }
+                                            
+                                                                if (thisCat == undefined) {
+                                                                    thisCat = "Other";
+                                                                }
 
-																nodes[previous['domain']]  = {
-																	name: previous['domain'],
-																	category: thisCat
-																};
-															}
-								
-															edgeList[key].source = nodes[previous['domain']];
-															edgeList[key].target = nodes[host];
-														}
-													}
-												}
-																			
-												if (treeCounts[host] == undefined) {
-													treeCounts[host] = 0;
-								
-													treeKeys.push(host);
-								
-													var thisCat = undefined;
-								
-													for (var j = 0; j < cat.children.length && thisCat == undefined; j++) {
-														var category = cat.children[j];
-									
-														if (visit["url"].indexOf(category.value) != -1) {
-															thisCat = category.category;
-														}
-													}
+                                                                nodes[previous['domain']]  = {
+                                                                    name: previous['domain'],
+                                                                    category: thisCat
+                                                                };
+                                                            }
+                                
+                                                            edgeList[key].source = nodes[previous['domain']];
+                                                            edgeList[key].target = nodes[host];
+                                                        }
+                                                    }
+                                                }
+                                                                            
+                                                if (treeCounts[host] == undefined) {
+                                                    treeCounts[host] = 0;
+                                
+                                                    treeKeys.push(host);
+                                
+                                                    var thisCat = undefined;
+                                
+                                                    for (var j = 0; j < cat.children.length && thisCat == undefined; j++) {
+                                                        var category = cat.children[j];
+                                    
+                                                        if (visit["url"].indexOf(category.value) != -1) {
+                                                            thisCat = category.category;
+                                                        }
+                                                    }
 
-													if (thisCat == undefined) {
-														thisCat = "Other";
-													}
+                                                    if (thisCat == undefined) {
+                                                        thisCat = "Other";
+                                                    }
 
-													treeCategories[host] = thisCat;
-												}
-							
-												treeCounts[host] = treeCounts[host] + 1;
-											
-												// Habits
-											
-												var when = moment(visit["date"]);
-											
-												var dateKey = when.format('YYYY MM DD');
-												
-												if (dateKeys.indexOf(dateKey) == -1) {
-													dateKeys.push(dateKey);
-												}
-											
-												if (dateHosts[dateKey] == undefined) {
-													dateHosts[dateKey] = []
-												}			
-											
-												if (dateHosts[dateKey].indexOf(host) == -1) {
-													dateHosts[dateKey].push(host);
-												}
-											}
-										}
-				
-										var edges = [];
-				
-										$.each(edgeKeyList, function(index, key) {
-											edges.push(edgeList[key]);
-										});
+                                                    treeCategories[host] = thisCat;
+                                                }
+                            
+                                                treeCounts[host] = treeCounts[host] + 1;
+                                            
+                                                // Habits
+                                            
+                                                var when = moment(visit["date"]);
+                                            
+                                                var dateKey = when.format('YYYY MM DD');
+                                                
+                                                if (dateKeys.indexOf(dateKey) == -1) {
+                                                    dateKeys.push(dateKey);
+                                                }
+                                            
+                                                if (dateHosts[dateKey] == undefined) {
+                                                    dateHosts[dateKey] = []
+                                                }           
+                                            
+                                                if (dateHosts[dateKey].indexOf(host) == -1) {
+                                                    dateHosts[dateKey].push(host);
+                                                }
+                                            }
+                                        }
+                
+                                        var edges = [];
+                
+                                        $.each(edgeKeyList, function(index, key) {
+                                            edges.push(edgeList[key]);
+                                        });
 
-										// Network visualization based on  http://www.d3noob.org/2013/03/d3js-force-directed-graph-example-basic.html and http://bl.ocks.org/mbostock/3750558
+                                        // Network visualization based on  http://www.d3noob.org/2013/03/d3js-force-directed-graph-example-basic.html and http://bl.ocks.org/mbostock/3750558
 
-										var width = totalWidth;
-										var height = width * (9 / 16);
+                                        var width = totalWidth;
+                                        var height = width * (9 / 16);
 
-										$("#viz_network").height(height);
-										$("#viz_network").width(width);
-										$("#viz_network").html("");
+                                        $("#viz_network").height(height);
+                                        $("#viz_network").width(width);
+                                        $("#viz_network").html("");
 
-										var nodeColor = d3.scale.category20c();
+                                        var nodeColor = d3.scale.category20c();
 
-										var networkTooltip = d3.select("body")
-											.append("div")
-											.style("position", "absolute")
-											.style("z-index", "10")
-											.style("visibility", "hidden")
-											.style("color", "white")
-											.style("padding", "8px")
-											.style("background-color", "rgba(0, 0, 0, 0.75)")
-											.style("border-radius", "6px")
-											.style("font", "12px sans-serif")
-											.text("tooltip");
+                                        var networkTooltip = d3.select("body")
+                                            .append("div")
+                                            .style("position", "absolute")
+                                            .style("z-index", "10")
+                                            .style("visibility", "hidden")
+                                            .style("color", "white")
+                                            .style("padding", "8px")
+                                            .style("background-color", "rgba(0, 0, 0, 0.75)")
+                                            .style("border-radius", "6px")
+                                            .style("font", "12px sans-serif")
+                                            .text("tooltip");
 
-										var force = d3.layout.force()
-											.nodes(d3.values(nodes))
-											.links(edges)
-											.size([width, height])
-											.linkDistance(30)
-											.charge(function(d){
-												if (d.weight > 2){
-												return (-d.weight * 4) - 80;
-												}
-												else {return -80;}
-											})
-											.gravity(0.05)
-											.on("tick", tick)
-											.start();
+                                        var force = d3.layout.force()
+                                            .nodes(d3.values(nodes))
+                                            .links(edges)
+                                            .size([width, height])
+                                            .linkDistance(30)
+                                            .charge(function(d){
+                                                if (d.weight > 2){
+                                                return (-d.weight * 4) - 80;
+                                                }
+                                                else {return -80;}
+                                            })
+                                            .gravity(0.05)
+                                            .on("tick", tick)
+                                            .start();
 
-										var svg = d3.select("#viz_network").append("svg")
-											.attr("width", width)
-											.attr("height", height)
-											.attr("id", "network_visualization");
+                                        var svg = d3.select("#viz_network").append("svg")
+                                            .attr("width", width)
+                                            .attr("height", height)
+                                            .attr("id", "network_visualization");
 
-										var drag = force.drag().on("dragstart", dragstart);
+                                        var drag = force.drag().on("dragstart", dragstart);
 
-										function dblclick(d) {
-											d3.select(this).classed("fixed", d.fixed = false);
-										}
+                                        function dblclick(d) {
+                                            d3.select(this).classed("fixed", d.fixed = false);
+                                        }
 
-										function dragstart(d) {
-											d3.select(this).classed("fixed", d.fixed = true);
-										}
+                                        function dragstart(d) {
+                                            d3.select(this).classed("fixed", d.fixed = true);
+                                        }
 
-										// build the arrow.
-										svg.append("svg:defs").selectAll("marker")
-											.data(["end"]) // Different link/path types can be defined here
-											.enter().append("svg:marker") // This section adds in the arrows
-											.attr("id", String)
-											.attr("viewBox", "0 -5 10 10")
-											.attr("refX", 10)
-											.attr("refY", -1.5)//1.5
-											.attr("markerWidth", 5)
-											.attr("markerHeight", 5)
-											.attr("orient", "auto")
-											.attr("class", "marker")
-											.append("svg:path")
-											.attr("d", "M0,-5L10,0L0,5");
+                                        // build the arrow.
+                                        svg.append("svg:defs").selectAll("marker")
+                                            .data(["end"]) // Different link/path types can be defined here
+                                            .enter().append("svg:marker") // This section adds in the arrows
+                                            .attr("id", String)
+                                            .attr("viewBox", "0 -5 10 10")
+                                            .attr("refX", 10)
+                                            .attr("refY", -1.5)//1.5
+                                            .attr("markerWidth", 5)
+                                            .attr("markerHeight", 5)
+                                            .attr("orient", "auto")
+                                            .attr("class", "marker")
+                                            .append("svg:path")
+                                            .attr("d", "M0,-5L10,0L0,5");
 
-										// add the links and the arrows
-										var path = svg.append("svg:g").selectAll("path")
-											.data(force.links())
-											.enter().append("svg:path")
-											.style("userSpaceOnUse", 1.5)
-											.attr("class", "link")
-											.attr("marker-end", "url(#end)");
-					
-										// define the nodes
-										var node = svg.selectAll(".node")
-											.data(force.nodes())
-											.enter().append("g")
-											.attr("class", "node")
-											.on("dblclick", dblclick)
-				//							.on("contextmenu", d3.contextMenu(menu, function(){
-				//								tooltip.style("visibility", "hidden");
-				//							}))
-											.on("mouseover", function(d){
-												networkTooltip.text(d.name + " Category: "+d.category);
-												networkTooltip.style("visibility", "visible");
-											})
-											.on("mousemove", function() {
-												return networkTooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");
-											})
-											.on("mouseout", function(){
-												return networkTooltip.style("visibility", "hidden");
-											})
-											.call(drag);
+                                        // add the links and the arrows
+                                        var path = svg.append("svg:g").selectAll("path")
+                                            .data(force.links())
+                                            .enter().append("svg:path")
+                                            .style("userSpaceOnUse", 1.5)
+                                            .attr("class", "link")
+                                            .attr("marker-end", "url(#end)");
+                    
+                                        // define the nodes
+                                        var node = svg.selectAll(".node")
+                                            .data(force.nodes())
+                                            .enter().append("g")
+                                            .attr("class", "node")
+                                            .on("dblclick", dblclick)
+                //                          .on("contextmenu", d3.contextMenu(menu, function(){
+                //                              tooltip.style("visibility", "hidden");
+                //                          }))
+                                            .on("mouseover", function(d){
+                                                networkTooltip.text(d.name + " Category: "+d.category);
+                                                networkTooltip.style("visibility", "visible");
+                                            })
+                                            .on("mousemove", function() {
+                                                return networkTooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");
+                                            })
+                                            .on("mouseout", function(){
+                                                return networkTooltip.style("visibility", "hidden");
+                                            })
+                                            .call(drag);
 
-										// add the nodes
-										node.append("circle")
-											.attr("r", function(d) { 
-												d.radius = (Math.log(d.weight) + .7) * 4;
-												return d.radius;
-											})
-											.attr("class", "network")
-											.style("fill", function(d) { return nodeColor(d.category); });
+                                        // add the nodes
+                                        node.append("circle")
+                                            .attr("r", function(d) { 
+                                                d.radius = (Math.log(d.weight) + .7) * 4;
+                                                return d.radius;
+                                            })
+                                            .attr("class", "network")
+                                            .style("fill", function(d) { return nodeColor(d.category); });
 
-										// add the curvy lines
-										function tick(e) {
-											var no = d3.values(nodes);
-											var q = d3.geom.quadtree(no),
-											i = 0,
-											n = no.length;
+                                        // add the curvy lines
+                                        function tick(e) {
+                                            var no = d3.values(nodes);
+                                            var q = d3.geom.quadtree(no),
+                                            i = 0,
+                                            n = no.length;
 
-											while (++i < n) q.visit(collide(no[i]));
-					
-											path.attr("d", function(d) {
-												var dx = d.target.x - d.source.x,
-												dy = d.target.y - d.source.y,
-												dr = Math.sqrt(dx * dx + dy * dy);
+                                            while (++i < n) q.visit(collide(no[i]));
+                    
+                                            path.attr("d", function(d) {
+                                                var dx = d.target.x - d.source.x,
+                                                dy = d.target.y - d.source.y,
+                                                dr = Math.sqrt(dx * dx + dy * dy);
 
-												// x and y distances from center to outside edge of target node
-												offsetX = (dx * d.target.radius) / dr;
-												offsetY = (dy * d.target.radius) / dr;
+                                                // x and y distances from center to outside edge of target node
+                                                offsetX = (dx * d.target.radius) / dr;
+                                                offsetY = (dy * d.target.radius) / dr;
 
-												placeX = (d.target.x - offsetX)
-												placeY = (d.target.y - offsetY)
+                                                placeX = (d.target.x - offsetX)
+                                                placeY = (d.target.y - offsetY)
 
-												//keep paths in the svg
-												var px = Math.max(1, Math.min(width, d.source.x)); 
-												var py = Math.max(1, Math.min(height, d.source.y));
+                                                //keep paths in the svg
+                                                var px = Math.max(1, Math.min(width, d.source.x)); 
+                                                var py = Math.max(1, Math.min(height, d.source.y));
 
-												return "M" +
-												px + "," +
-												py + "A" +
-												dr + "," + dr + " 0 0,1 " +
-												+ placeX + "," + placeY;
-											});
+                                                return "M" +
+                                                px + "," +
+                                                py + "A" +
+                                                dr + "," + dr + " 0 0,1 " +
+                                                + placeX + "," + placeY;
+                                            });
 
-											node.attr("transform", function(d) {
-												//keep nodes in the svg
-												var dx = Math.max(d.radius, Math.min(width - d.radius, d.x))
-												var dy = Math.max(d.radius, Math.min(height - d.radius, d.y))
-												return "translate(" + dx + "," + dy + ")";
-											});
-										}
+                                            node.attr("transform", function(d) {
+                                                //keep nodes in the svg
+                                                var dx = Math.max(d.radius, Math.min(width - d.radius, d.x))
+                                                var dy = Math.max(d.radius, Math.min(height - d.radius, d.y))
+                                                return "translate(" + dx + "," + dy + ")";
+                                            });
+                                        }
 
-										function collide(node) {
-											var r = node.radius + 16,
-											nx1 = node.x - r,
-											nx2 = node.x + r,
-											ny1 = node.y - r,
-											ny2 = node.y + r;
+                                        function collide(node) {
+                                            var r = node.radius + 16,
+                                            nx1 = node.x - r,
+                                            nx2 = node.x + r,
+                                            ny1 = node.y - r,
+                                            ny2 = node.y + r;
 
-											return function(quad, x1, y1, x2, y2) {
-												if (quad.point && (quad.point !== node)) {
-													var x = node.x - quad.point.x,
-													y = node.y - quad.point.y,
-													l = Math.sqrt(x * x + y * y),
-													r = node.radius + quad.point.radius;
+                                            return function(quad, x1, y1, x2, y2) {
+                                                if (quad.point && (quad.point !== node)) {
+                                                    var x = node.x - quad.point.x,
+                                                    y = node.y - quad.point.y,
+                                                    l = Math.sqrt(x * x + y * y),
+                                                    r = node.radius + quad.point.radius;
 
-													if (l < r) {
-														l = (l - r) / l * .5;
-														node.x -= x *= l;
-														node.y -= y *= l;
-														quad.point.x += x;
-														quad.point.y += y;
-													}
-												}
-						
-												return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-											};
-										};
-							
-										// Sites Visited 
-										
-										var tree = {};
-										tree['depth'] = 0;
-										tree['value'] = 1;
-										tree['domain'] = "";
-										tree['category'] = "";
-										tree['children'] = [];
-						
-										for (var i = 0; i < treeKeys.length; i++) {
-											var key = treeKeys[i];
-							
-											var count = treeCounts[key];
-							
-											var leaf = {};
-											leaf['depth'] = 1;
-											leaf['value'] = count;
-											leaf['visit_count'] = count;
-											leaf['domain'] = key;
-											leaf['category'] = treeCategories[key];
-							
-											tree['value'] = tree['value'] + count;
-											tree['children'].push(leaf);
-										}
-									
-	// ------
-										var habitTree = {};
-										habitTree['depth'] = 0;
-										habitTree['value'] = 1;
-										habitTree['domain'] = "";
-										habitTree['category'] = "";
-										habitTree['children'] = [];
-									
-										var dateLeafs = {};
-										
-										for (var i = 0; i < dateKeys.length; i++) {
-										    var dateKey = dateKeys[i];
-										    
-										    var hosts = dateHosts[dateKey];
-										    
-										    for (var j = 0; j < hosts.length; j++) {
-										    	var host = hosts[j];
-										    	
-										    	if (dateLeafs[host] == undefined) {
-													var leaf = {};
-													leaf['depth'] = 1;
-													leaf['value'] = 1;
-													leaf['domain'] = host;
-													leaf['category'] = treeCategories[host];
-							
-													habitTree['value'] = habitTree['value'] + 1;
-													habitTree['children'].push(leaf);
-													
-													dateLeafs[host] = leaf;
-										    	} else {
-										    		dateLeafs[host]['value'] = dateLeafs[host]['value'] + 1
-										    	}
-										    }
-										}
-						
-										for (var i = 0; i < treeKeys.length; i++) {
-											var key = treeKeys[i];
-							
-											var count = treeCounts[key];
-							
-											var leaf = {};
-											leaf['depth'] = 1;
-											leaf['value'] = count;
-											leaf['visit_count'] = count;
-											leaf['domain'] = key;
-											leaf['category'] = treeCategories[key];
-							
-											tree['value'] = tree['value'] + count;
-											tree['children'].push(leaf);
-										}
-									
-										var refreshVisits = function() {
-											$("#viz_visted").height(width);
-											$("#viz_visted").width(width);
-											$("#viz_visted").html("");
-						
-											var r = $("#viz_visted").height();
-											var format = d3.format(",d");
+                                                    if (l < r) {
+                                                        l = (l - r) / l * .5;
+                                                        node.x -= x *= l;
+                                                        node.y -= y *= l;
+                                                        quad.point.x += x;
+                                                        quad.point.y += y;
+                                                    }
+                                                }
+                        
+                                                return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+                                            };
+                                        };
+                            
+                                        // Sites Visited 
+                                        
+                                        var tree = {};
+                                        tree['depth'] = 0;
+                                        tree['value'] = 1;
+                                        tree['domain'] = "";
+                                        tree['category'] = "";
+                                        tree['children'] = [];
+                        
+                                        for (var i = 0; i < treeKeys.length; i++) {
+                                            var key = treeKeys[i];
+                            
+                                            var count = treeCounts[key];
+                            
+                                            var leaf = {};
+                                            leaf['depth'] = 1;
+                                            leaf['value'] = count;
+                                            leaf['visit_count'] = count;
+                                            leaf['domain'] = key;
+                                            leaf['category'] = treeCategories[key];
+                            
+                                            tree['value'] = tree['value'] + count;
+                                            tree['children'].push(leaf);
+                                        }
+                                    
+    // ------
+                                        var habitTree = {};
+                                        habitTree['depth'] = 0;
+                                        habitTree['value'] = 1;
+                                        habitTree['domain'] = "";
+                                        habitTree['category'] = "";
+                                        habitTree['children'] = [];
+                                    
+                                        var dateLeafs = {};
+                                        
+                                        for (var i = 0; i < dateKeys.length; i++) {
+                                            var dateKey = dateKeys[i];
+                                            
+                                            var hosts = dateHosts[dateKey];
+                                            
+                                            for (var j = 0; j < hosts.length; j++) {
+                                                var host = hosts[j];
+                                                
+                                                if (dateLeafs[host] == undefined) {
+                                                    var leaf = {};
+                                                    leaf['depth'] = 1;
+                                                    leaf['value'] = 1;
+                                                    leaf['domain'] = host;
+                                                    leaf['category'] = treeCategories[host];
+                            
+                                                    habitTree['value'] = habitTree['value'] + 1;
+                                                    habitTree['children'].push(leaf);
+                                                    
+                                                    dateLeafs[host] = leaf;
+                                                } else {
+                                                    dateLeafs[host]['value'] = dateLeafs[host]['value'] + 1
+                                                }
+                                            }
+                                        }
+                        
+                                        for (var i = 0; i < treeKeys.length; i++) {
+                                            var key = treeKeys[i];
+                            
+                                            var count = treeCounts[key];
+                            
+                                            var leaf = {};
+                                            leaf['depth'] = 1;
+                                            leaf['value'] = count;
+                                            leaf['visit_count'] = count;
+                                            leaf['domain'] = key;
+                                            leaf['category'] = treeCategories[key];
+                            
+                                            tree['value'] = tree['value'] + count;
+                                            tree['children'].push(leaf);
+                                        }
+                                    
+                                        var refreshVisits = function() {
+                                            $("#viz_visted").height(width);
+                                            $("#viz_visted").width(width);
+                                            $("#viz_visted").html("");
+                        
+                                            var r = $("#viz_visted").height();
+                                            var format = d3.format(",d");
 
-											var bubble = d3.layout.pack()
-												.sort(null)
-												.size([r, r])
-												.padding(1.5);
-							
-											var tooltip = d3.select("body")
-												.append("div")
-												.style("position", "absolute")
-												.style("z-index", "10")
-												.style("visibility", "hidden")
-												.style("color", "white")
-												.style("padding", "8px")
-												.style("background-color", "rgba(0, 0, 0, 0.75)")
-												.style("border-radius", "6px")
-												.style("font", "12px sans-serif")
-												.text("tooltip");
+                                            var bubble = d3.layout.pack()
+                                                .sort(null)
+                                                .size([r, r])
+                                                .padding(1.5);
+                            
+                                            var tooltip = d3.select("body")
+                                                .append("div")
+                                                .style("position", "absolute")
+                                                .style("z-index", "10")
+                                                .style("visibility", "hidden")
+                                                .style("color", "white")
+                                                .style("padding", "8px")
+                                                .style("background-color", "rgba(0, 0, 0, 0.75)")
+                                                .style("border-radius", "6px")
+                                                .style("font", "12px sans-serif")
+                                                .text("tooltip");
 
-											var vis = d3.select("#viz_visted").append("svg")
-												.attr("width", width)
-												.attr("height", width)
-												.attr("class", "bubble")
-												.attr("id", "viz_visted_visualization");
-											
-											var dataNodes = tree;
-										
-											if (visitsSelected == false) {
-												dataNodes = habitTree;
-											}
+                                            var vis = d3.select("#viz_visted").append("svg")
+                                                .attr("width", width)
+                                                .attr("height", width)
+                                                .attr("class", "bubble")
+                                                .attr("id", "viz_visted_visualization");
+                                            
+                                            var dataNodes = tree;
+                                        
+                                            if (visitsSelected == false) {
+                                                dataNodes = habitTree;
+                                            }
 
-											var bubbleNode = vis.selectAll(".node")
-												.data(bubble.nodes(dataNodes)
-													.filter(function (d) {
-														return !d.children;
-													}),function(d) {return d['domain'];});
+                                            var bubbleNode = vis.selectAll(".node")
+                                                .data(bubble.nodes(dataNodes)
+                                                    .filter(function (d) {
+                                                        return !d.children;
+                                                    }),function(d) {return d['domain'];});
 
-											var nodeEnter = bubbleNode.enter()
-												.append("g")
-												.attr("class", "node")
-												.attr("transform", function (d) {
-													return "translate(" + d.x + "," + d.y + ")";
-												});
-								
-											nodeEnter
-												.append("circle")
-												.attr("r", function (d) {
-													return d.r;
-												})
-												.style("fill", function (d) {
-													return fill(d['category']);
-												})
-												.on("click", function (d){
-													d3.select(this).style({fill: "yellow", stroke: "#a6a6a6", "stroke-width": "2px"});
-												})
-												.on("dblclick", function(d){
-													d3.select(this).style("fill", function (d) { return fill(d.packageName); });
-													d3.select(this).style("stroke-width", "0px");
-												})
-				//								.on("contextmenu", d3.contextMenu(menu, function(){
-				//									tooltip.style("visibility", "hidden");
-				//								}))
-												.on("mouseover", function(d) {
-													tooltip.text(d['domain'] + ", Visits: " + format(d.value) + ", Category: " + d['category']);
-				//									if (habits===0){
-				//										tooltip.text(d.className + ", Visits: " + format(d.value) + ", Category: " + d.packageName);
-				//									}
-				//									else if (habits===1){
-				//									//var percentDays = Math.round((d.value/diffDays) * 100);
-				//										tooltip.text(d.className + ", Days Visited: " + format(d.value) + ", Category: " + d.packageName);
-				//									}
-				//								
-													tooltip.style("visibility", "visible");
-												})
-												.on("mousemove", function() {
-													return tooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");
-												})
-												.on("mouseout", function(){
-													return tooltip.style("visibility", "hidden");
-												});
+                                            var nodeEnter = bubbleNode.enter()
+                                                .append("g")
+                                                .attr("class", "node")
+                                                .attr("transform", function (d) {
+                                                    return "translate(" + d.x + "," + d.y + ")";
+                                                });
+                                
+                                            nodeEnter
+                                                .append("circle")
+                                                .attr("r", function (d) {
+                                                    return d.r;
+                                                })
+                                                .style("fill", function (d) {
+                                                    return fill(d['category']);
+                                                })
+                                                .on("click", function (d){
+                                                    d3.select(this).style({fill: "yellow", stroke: "#a6a6a6", "stroke-width": "2px"});
+                                                })
+                                                .on("dblclick", function(d){
+                                                    d3.select(this).style("fill", function (d) { return fill(d.packageName); });
+                                                    d3.select(this).style("stroke-width", "0px");
+                                                })
+                //                              .on("contextmenu", d3.contextMenu(menu, function(){
+                //                                  tooltip.style("visibility", "hidden");
+                //                              }))
+                                                .on("mouseover", function(d) {
+                                                    tooltip.text(d['domain'] + ", Visits: " + format(d.value) + ", Category: " + d['category']);
+                //                                  if (habits===0){
+                //                                      tooltip.text(d.className + ", Visits: " + format(d.value) + ", Category: " + d.packageName);
+                //                                  }
+                //                                  else if (habits===1){
+                //                                  //var percentDays = Math.round((d.value/diffDays) * 100);
+                //                                      tooltip.text(d.className + ", Days Visited: " + format(d.value) + ", Category: " + d.packageName);
+                //                                  }
+                //                              
+                                                    tooltip.style("visibility", "visible");
+                                                })
+                                                .on("mousemove", function() {
+                                                    return tooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");
+                                                })
+                                                .on("mouseout", function(){
+                                                    return tooltip.style("visibility", "hidden");
+                                                });
 
-											nodeEnter
-												.append("text")
-												.attr("pointer-events", "none")
-												.attr("text-anchor", "middle")
-												.attr("dy", ".3em")
-												.text(function (d) {
-													return d['domain'].substring(0, d.r / 3);
-												});
+                                            nodeEnter
+                                                .append("text")
+                                                .attr("pointer-events", "none")
+                                                .attr("text-anchor", "middle")
+                                                .attr("dy", ".3em")
+                                                .text(function (d) {
+                                                    return d['domain'].substring(0, d.r / 3);
+                                                });
 
-											bubbleNode.transition().attr("class", "node")
-												.transition().duration(5000)
-												.attr("transform", function (d) {
-													return "translate(" + d.x + "," + d.y + ")";
-												});
+                                            bubbleNode.transition().attr("class", "node")
+                                                .transition().duration(5000)
+                                                .attr("transform", function (d) {
+                                                    return "translate(" + d.x + "," + d.y + ")";
+                                                });
 
-											bubbleNode.select("circle")
-												.transition().duration(2000)
-												.attr("r", function (d) {
-													return d.r;
-												});
-						
-											bubbleNode.select("text")
-												.transition().duration(5000)
-												.attr("text-anchor", "middle")
-												.attr("dy", ".3em")
-												.text(function (d) {
-													return d['domain'].substring(0, d.r / 3);
-												});
-						
-											bubbleNode.exit().remove();
-										}
-									
-										$("#viz_visits_button").addClass("active");
-										refreshVisits();
+                                            bubbleNode.select("circle")
+                                                .transition().duration(2000)
+                                                .attr("r", function (d) {
+                                                    return d.r;
+                                                });
+                        
+                                            bubbleNode.select("text")
+                                                .transition().duration(5000)
+                                                .attr("text-anchor", "middle")
+                                                .attr("dy", ".3em")
+                                                .text(function (d) {
+                                                    return d['domain'].substring(0, d.r / 3);
+                                                });
+                        
+                                            bubbleNode.exit().remove();
+                                        }
+                                    
+                                        $("#viz_visits_button").addClass("active");
+                                        refreshVisits();
 
-										$("#viz_visits_button").click(function() {
-											$("#viz_habits_button").removeClass("active");
-											$("#viz_visits_button").addClass("active");
-											visitsSelected = true;
-										
-											refreshVisits();
-										});
+                                        $("#viz_visits_button").click(function() {
+                                            $("#viz_habits_button").removeClass("active");
+                                            $("#viz_visits_button").addClass("active");
+                                            visitsSelected = true;
+                                        
+                                            refreshVisits();
+                                        });
 
-										$("#viz_habits_button").click(function() {
-											$("#viz_habits_button").addClass("active");
-											$("#viz_visits_button").removeClass("active");
-											visitsSelected = false;
+                                        $("#viz_habits_button").click(function() {
+                                            $("#viz_habits_button").addClass("active");
+                                            $("#viz_visits_button").removeClass("active");
+                                            visitsSelected = false;
 
-											refreshVisits();
-										});
-									};
+                                            refreshVisits();
+                                        });
+                                    };
 
-									$("#nav_network").show();
-									$("#nav_sites_visited").show();
-									$("#nav_search_terms").show();
+                                    $("#nav_network").show();
+                                    $("#nav_sites_visited").show();
+                                    $("#nav_search_terms").show();
 
-									$("#start_date").removeAttr("disabled");
-									$("#end_date").removeAttr("disabled");
-									$("#date_refresh").removeClass("disabled");
-									$("#date_refresh").click(filterData);
-									
-									$("#start_date").val(moment(earliestPoint).format('MM/DD/YYYY'));
-									$("#end_date").val(moment(latestPoint).format('MM/DD/YYYY'));
+                                    $("#start_date").removeAttr("disabled");
+                                    $("#end_date").removeAttr("disabled");
+                                    $("#date_refresh").removeClass("disabled");
+                                    $("#date_refresh").click(filterData);
+                                    
+                                    $("#start_date").val(moment(earliestPoint).format('MM/DD/YYYY'));
+                                    $("#end_date").val(moment(latestPoint).format('MM/DD/YYYY'));
 
-									$('.datepicker').datepicker();
-									
-									filterData();
-								}).fail(function(){
-									console.log("Error! JSON file not found or invalid formatting");
-									cats.push({search: "domainExact", category: "Other", value: " "});
-									callback();
-								}).done(function() {
-		//							sessionStorage.setItem("cats", JSON.stringify(cats));
-								});
-							}
-						});
-					};
+                                    $('.datepicker').datepicker();
+                                    
+                                    filterData();
+                                }).fail(function(){
+                                    console.log("Error! JSON file not found or invalid formatting");
+                                    cats.push({search: "domainExact", category: "Other", value: " "});
+                                    callback();
+                                }).done(function() {
+        //                          sessionStorage.setItem("cats", JSON.stringify(cats));
+                                });
+                            }
+                        });
+                    };
 
-					var searchWidth = $("div.search").width();
-		
-					$("#wh_toolbar").width(totalWidth - searchWidth - 40)
-					$("#wh_progress").width($("#wh_toolbar").width() - ($("label#wh_progress_label_left").width() * 2));
-					$("#wh_progress").css("margin-top", "8px");
-					$("#nav_network").hide();
-					$("#nav_sites_visited").hide();
-					$("#nav_search_terms").hide();
-					
-					$("div#network").hide();
-					$("div#sites_visited").hide();
-					$("div#search_terms").hide();
+                    var searchWidth = $("div.search").width();
+        
+//                    $("#wh_toolbar").width(totalWidth - searchWidth - 40)
+//                    $("#wh_progress").width($("#wh_toolbar").width() - ($("label#wh_progress_label_left").width() * 2));
+//	                  $("#wh_progress").css("margin-top", "8px");
+                    $("#nav_network").hide();
+                    $("#nav_sites_visited").hide();
+                    $("#nav_search_terms").hide();
+                    
+                    $("div#all_data").hide();
+                    $("div#network").hide();
+                    $("div#sites_visited").hide();
+                    $("div#search_terms").hide();
 
-					loadData("{% url 'historian_visualization_data' source_id 0 %}");
-				});
+                    loadData("{% url 'historian_visualization_data' source_id 0 %}");
+                });
             </script>
         </div>
     </div>

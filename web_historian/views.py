@@ -107,5 +107,58 @@ def historian_user_home(request, source_id):
     c = RequestContext(request)
     c['source_id'] = source_id
     
+    last_usage_compare = DataPoint.objects.filter(generator_identifier='web-historian-behavior-metadata').order_by('-created').first()
+    
+    if last_usage_compare is not None:
+        my_data = None
+        
+        domain_counts = []
+        search_counts = []
+        visit_counts = []
+        
+        for source, value in last_usage_compare.properties.iteritems():
+            if source == data_hash:
+                my_data = value
+            elif 'domains' in value:
+               if value['domains'] > 0:
+                  domain_counts.append(value['domains'])
+                  search_counts.append(value['searches'])
+                  visit_counts.append(value['visits'])
+
+        c['avg_domains'] = (sum(domain_counts) / float(len(domain_counts)))
+        c['avg_searches'] = (sum(search_counts) / float(len(search_counts)))
+        c['avg_visits'] = (sum(visit_counts) / float(len(visit_counts)))
+                  
+        if my_data is not None:
+            c['my_domains'] = my_data['domains']
+            c['my_domains_percentage'] = (my_data['domains'] / (sum(domain_counts) / float(len(domain_counts)))) * 100
+
+            c['my_searches'] = my_data['searches']
+            c['my_searches_percentage'] = (my_data['searches'] / (sum(search_counts) / float(len(search_counts)))) * 100
+
+            c['my_visits'] = my_data['visits']
+            c['my_visits_percentage'] = (my_data['visits'] / (sum(visit_counts) / float(len(visit_counts)))) * 100
+            
+            if c['my_domains'] > c['avg_domains']:
+                c['my_domains_bar'] = 100
+                c['avg_domains_bar'] = 100 * (c['avg_domains'] / c['my_domains'])
+            else:
+                c['my_domains_bar'] = 100 * (c['my_domains'] / c['avg_domains'])
+                c['avg_domains_bar'] = 100
+
+            if c['my_searches'] > c['avg_searches']:
+                c['my_searches_bar'] = 100
+                c['avg_searches_bar'] = 100 * (c['avg_searches'] / c['my_searches'])
+            else:
+                c['my_searches_bar'] = 100 * (c['my_searches'] / c['avg_searches'])
+                c['avg_searches_bar'] = 100
+
+            if c['my_visits'] > c['avg_visits']:
+                c['my_visits_bar'] = 100
+                c['avg_visits_bar'] = 100 * (c['avg_visits'] / c['my_visits'])
+            else:
+                c['my_visits_bar'] = 100 * (c['my_visits'] / c['avg_visits'])
+                c['avg_visits_bar'] = 100
+    
     return render_to_response('historian_user_data.html', c)
 
