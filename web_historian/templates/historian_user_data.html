@@ -38,49 +38,46 @@
     <div class="row">
         <div class="col-md-12">
             <div id="summary" class="viz_element">
-                <h2>Weekly Comparison</h2>
+                <h2>Weekly Comparison: {{ compare_start|date:"F j" }} to {{ compare_end|date:"F j" }}</h2>
                 
                 <div>
-                	<label>My Domains Visited: {{ my_domains }} ({{ my_domains_percentage|floatformat:2 }}%)</label>
-					<div class="progress">
-						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ my_domains_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ my_domains_bar }}%"></div>
-					</div>
+                	<label>Websites Visited</label>
+
+					<div>
+	                	<div style="width: {{ my_domains_bar }}%; background-color: #039BE5; display: inline-block;">&nbsp;</div><span style="margin: 0.5em;">{{ my_domains }} (You)</span>
+	                </div>
+	                <div>
+	                	<div style="width: {{ avg_domains_bar }}%; background-color: #757575; display: inline-block;">&nbsp;</div><span style="margin: 0.5em;">{{ avg_domains }} (Average Web Historian User)</span>
+	                </div>
 				</div>
 
-                <div>
-                	<label>Average Domains Visited: {{ avg_domains }}</label>
-					<div class="progress">
-						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ avg_domains_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ avg_domains_bar }}%"></div>
-					</div>
+
+                <div style="margin-top: 20px;">
+                	<label>Searches</label>
+
+					<div>
+	                	<div style="width: {{ my_searches_bar }}%; background-color: #039BE5; display: inline-block;">&nbsp;</div><span style="margin: 0.5em;">{{ my_searches }} (You)</span>
+	                </div>
+	                <div>
+	                	<div style="width: {{ avg_searches_bar }}%; background-color: #757575; display: inline-block;">&nbsp;</div><span style="margin: 0.5em;">{{ avg_searches }} (Average Web Historian User)</span>
+	                </div>
 				</div>
 
-                <div style="margin-top: 40px;">
-                	<label>My Searches: {{ my_searches }} ({{ my_searches_percentage|floatformat:2 }}%)</label>
-					<div class="progress">
-						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ my_searches_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ my_searches_bar }}%"></div>
-					</div>
-				</div>
+                <div style="margin-top: 20px;">
+                	<label>Page Loads</label>
 
-                <div>
-                	<label>Average Searches: {{ avg_searches }}</label>
-					<div class="progress">
-						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ avg_searches_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ avg_searches_bar }}%"></div>
-					</div>
+					<div>
+	                	<div style="width: {{ my_visits_bar }}%; background-color: #039BE5; display: inline-block;">&nbsp;</div><span style="margin: 0.5em;">{{ my_visits }} (You)</span>
+	                </div>
+	                <div>
+	                	<div style="width: {{ avg_visits_bar }}%; background-color: #757575; display: inline-block;">&nbsp;</div><span style="margin: 0.5em;">{{ avg_visits }} (Average Web Historian User)</span>
+	                </div>
 				</div>
-
-                <div style="margin-top: 40px;">
-                	<label>Pages Visited: {{ my_visits }} ({{ my_visits_percentage|floatformat:2 }}%)</label>
-					<div class="progress">
-						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ my_visits_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ my_visits_bar }}%"></div>
-					</div>
-				</div>
-
-                <div>
-                	<label>Average Pages Visited: {{ avg_visits }}</label>
-					<div class="progress">
-						<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ avg_visits_bar }}%" aria-valuemin="0" aria-valuemax="100" style="width: {{ avg_visits_bar }}%"></div>
-					</div>
-				</div>
+				<script>
+					$(document).ready(function () {
+						$('[data-toggle="tooltip"]').tooltip()
+					});
+				</script>
             </div>
             <div id="all_data" class="viz_element">
                 <table id="web_historian_table"></table>
@@ -225,8 +222,8 @@
                                 title: 'Title',
                                 sortable: true
                             }, {
-                                field: 'terms',
-                                title: 'Search Terms',
+                                field: 'url',
+                                title: 'URL',
                                 sortable: true
                             }, {
                                 field: 'transition',

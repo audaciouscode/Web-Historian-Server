@@ -1,0 +1,105 @@
+{% load static from staticfiles %}
+{% load passive_data_kit %}
+{% load static from staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="" />
+		<meta name="author" content="" />
+		<link rel="icon" href="../../favicon.ico" />
+		<title>Web Historian</title>
+		<link href="{% static 'pdk/css/lib/bootstrap.min.css' %}" rel="stylesheet" />
+		<link href="{% static 'pdk/css/lib/bootstrap-theme.min.css' %}" rel="stylesheet" />
+		<link href="{% static 'pdk/css/lib/bootstrap-table.css' %}" rel="stylesheet" />
+		<link href="{% static 'pdk/css/lib/bootstrap-datepicker.css' %}" rel="stylesheet" />
+		<link href="{% static 'pdk/css/lib/dashboard.css' %}" rel="stylesheet" />
+		<link href="{% static 'historian/css/network.css' %}" rel="stylesheet" />
+	    <script src="{% static 'pdk/js/lib/jquery.js' %}"></script>
+	    <script src="{% static 'pdk/js/lib/bootstrap.js' %}"></script>
+	    <script src="{% static 'pdk/js/lib/bootstrap-table.js' %}"></script>
+	    <script src="{% static 'pdk/js/lib/bootstrap-datepicker.min.js' %}"></script>
+	    <script src="{% static 'pdk/js/lib/moment.js' %}"></script>
+	    <script src="{% static 'historian/js/d3.js' %}"></script>
+	    <script src="{% static 'historian/js/d3.layout.cloud.js' %}"></script>
+	</head>
+
+	<body>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-4 col-md-4">
+
+				</div>
+				<div class="col-sm-4 col-md-4">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h1 class="panel-title">Loading Data&#8230</h1>
+						</div>
+
+						<div class="panel-body">
+							<p>
+								The first time you send data to Web Historian, there is a slight delay between  your upload and when the system has processed that information and it's ready for use.
+							</p>
+							
+							<p>
+								You may close this tab and come back later through the extension or leave this tab open.
+								It will refresh periodically and will show your data is ready to go.
+							</p>
+							
+							<p>
+								This page will refresh when the counter below reaches <strong>0:00</strong>.
+							</p>
+							
+							<h1 id="countdown_timer" class="text-center">1:23</h1>
+							
+							<p class="small" style="margin-top: 2em;">
+								<em>If you've successfully accessed Web Historian before,</em> and are now seeing this page, you used an outdated link.
+								To protect your privacy, Web Historian links are only valid for 48 hours.
+								To get a fresh link, simply load the Web Historian extension in your browser and click the <strong>View on Server</strong> icon in the header.
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-sm-4 col-md-4">
+
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		$(document).ready(function() {
+			var start = moment();
+			
+			var refresh_duration = 300000;
+			
+			var tick = function() {
+			    console.log("tick");
+			    
+				var now = moment();
+			
+				var duration = moment.duration(refresh_duration - (now - start));
+				
+				if (duration > 0) {
+					var seconds = "" + duration.seconds();
+				
+					while (seconds.length < 2) {
+						seconds = "0" + seconds;
+					}
+				
+					$("#countdown_timer").html(duration.minutes() + ":" + seconds);
+				
+					window.setTimeout(tick, 500);
+				} else {
+					$("#countdown_timer").html("Refreshing&#8230;");
+
+					location.reload();
+				}
+			};
+
+			tick();
+		});
+	</script>		
+</html>

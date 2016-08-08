@@ -1,7 +1,10 @@
 {
 	"name": "categories",
-	"children": [
-		{
+	"children": [{
+			"search": "domainExact",
+			"category": "Other",
+			"value": ""
+		}, {
 			"search": "domainExact",
 			"category": "Blog",
 			"value": "wordpress.com"
@@ -160,6 +163,10 @@
 		}, {
 			"search": "domainExact",
 			"category": "Social Media",
+			"value": "t.co"
+		}, {
+			"search": "domainExact",
+			"category": "Social Media",
 			"value": "pinterest.com"
 		}, {
 			"search": "domainExact",
@@ -213,14 +220,6 @@
 			"search": "topDomainExact",
 			"category": "Other Google Service",
 			"value": "google.com"
-		}, {
-			"search": "domainExact",
-			"category": "Video",
-			"value": "netflix.com"
-		}, {
-			"search": "domainExact",
-			"category": "Video",
-			"value": "hulu.com"
 		},{
 			"search": "topDomainExact",
 			"category": "Government",
@@ -238,17 +237,18 @@
 			"category": ".net",
 			"value": "net"
 		}, {
-			"search": "domainExact",
-			"category": "Social Media",
-			"value": "t.co"
-		}, {
 			"search": "topDomainExact",
 			"category": "Education",
 			"value": "edu"
 		}, {
 			"search": "domainExact",
-			"category": "Other",
-			"value": ""
-		}
-	]
+			"category": "Video",
+			"value": "netflix.com"
+		}, {
+			"search": "domainExact",
+			"category": "Video",
+			"value": "hulu.com"
+	}]
+
+
 }
