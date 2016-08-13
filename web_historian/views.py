@@ -167,17 +167,33 @@ def historian_user_home(request, source_id):
                   
         if my_data is not None:
             c['my_domains'] = my_data['domains']
-            c['my_domains_percentage'] = (my_data['domains'] / (sum(domain_counts) / float(len(domain_counts)))) * 100
-
+            
+            try:
+                c['my_domains_percentage'] = (my_data['domains'] / (sum(domain_counts) / float(len(domain_counts)))) * 100
+            except ZeroDivisionError:
+                c['my_domains_percentage'] = 0
+                
+            
             c['my_searches'] = my_data['searches']
-            c['my_searches_percentage'] = (my_data['searches'] / (sum(search_counts) / float(len(search_counts)))) * 100
+
+            try:
+                c['my_searches_percentage'] = (my_data['searches'] / (sum(search_counts) / float(len(search_counts)))) * 100
+            except ZeroDivisionError:
+                c['my_searches_percentage'] = 0
 
             c['my_visits'] = my_data['visits']
-            c['my_visits_percentage'] = (my_data['visits'] / (sum(visit_counts) / float(len(visit_counts)))) * 100
+
+            try:
+                c['my_visits_percentage'] = (my_data['visits'] / (sum(visit_counts) / float(len(visit_counts)))) * 100
+            except ZeroDivisionError:
+                c['my_visits_percentage'] = 0
             
             if c['my_domains'] > c['avg_domains']:
                 c['my_domains_bar'] = 80
                 c['avg_domains_bar'] = 80 * (c['avg_domains'] / c['my_domains'])
+            elif c['my_domains'] == 0:
+                c['my_domains_bar'] = 0
+                c['avg_domains_bar'] = 80
             else:
                 c['my_domains_bar'] = 80 * (c['my_domains'] / c['avg_domains'])
                 c['avg_domains_bar'] = 80
@@ -185,6 +201,9 @@ def historian_user_home(request, source_id):
             if c['my_searches'] > c['avg_searches']:
                 c['my_searches_bar'] = 80
                 c['avg_searches_bar'] = 80 * (c['avg_searches'] / c['my_searches'])
+            elif c['my_searches'] == 0:
+                c['my_searches_bar'] = 0
+                c['avg_searches_bar'] = 80
             else:
                 c['my_searches_bar'] = 80 * (c['my_searches'] / c['avg_searches'])
                 c['avg_searches_bar'] = 80
@@ -192,6 +211,9 @@ def historian_user_home(request, source_id):
             if c['my_visits'] > c['avg_visits']:
                 c['my_visits_bar'] = 80
                 c['avg_visits_bar'] = 80 * (c['avg_visits'] / c['my_visits'])
+            elif c['my_visits'] == 0:
+                c['my_visits_bar'] = 0
+                c['avg_visits_bar'] = 80
             else:
                 c['my_visits_bar'] = 80 * (c['my_visits'] / c['avg_visits'])
                 c['avg_visits_bar'] = 80

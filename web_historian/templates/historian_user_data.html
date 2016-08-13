@@ -9,6 +9,7 @@
         <li id="nav_network" class="wh_nav_item"><a href="#"><span class="glyphicon glyphicon-cloud"></span> Network</a></li>
         <li id="nav_sites_visited" class="wh_nav_item"><a href="#"><span class="glyphicon glyphicon-globe"></span> Websites Visited</a></li>
         <li id="nav_search_terms" class="wh_nav_item"><a href="#"><span class="glyphicon glyphicon-search"></span> Search Terms</a></li>
+        <li id="nav_time_heat" class="wh_nav_item"><a href="#"><span class="glyphicon glyphicon-th-large"></span> Time Heatmap</a></li>
     </ul>
 
     <div style="margin-top: 40px;" id="sidebar_progress">
@@ -99,6 +100,20 @@
             <div id="search_terms" class="viz_element">
                 <div id="viz_search_terms"></div>
             </div>
+            <div id="time_heat" class="viz_element">
+				<div class="dropdown pull-right">
+					<button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-primary">
+						Select Week
+						<span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu" aria-labelledby="dLabel" id="heat_week_dropdown">
+
+					</ul>
+				</div>
+            	<h1>Time Heatmap: <span id="heat_week"></span></h1>
+
+                <div id="viz_time_heat"></div>
+            </div>
             <script>
                 var visitsSelected = true;
                 
@@ -169,6 +184,15 @@
                         
                         $("li#nav_search_terms").addClass("active");
                         $("div#search_terms").show();
+                    });
+
+                    $("li#nav_time_heat").click(function() {
+                    	console.log("HEATMAP TODO");
+                        $("li.wh_nav_item").removeClass("active");  
+                        $("div.viz_element").hide();
+                        
+                        $("li#nav_time_heat").addClass("active");
+                        $("div#time_heat").show();
                     });
                     
                     var allDetail = function(index, row, element) {
@@ -246,6 +270,9 @@
                     var latestPoint = null;
                     var earliestPoint = null;
 
+					var hourCounts = {};
+					var countMax = 0;
+
                     var loadData = function(url)
                     {
                         $.get(url, function(data) 
@@ -257,7 +284,7 @@
                             $("#wh_progress_bar").width(percentage + "%");
                 
                             var rows = [];
-                
+                            
                             for (var i = 0; i < data.visits.length; i++)
                             {
                                 var visit = data.visits[i];
@@ -269,7 +296,24 @@
                     
                                 var row = {};
                     
-                                var when = moment(visit["date"]);                           
+                                var when = moment(visit["date"]);
+                                
+                                var hourKey = when.format('YYYY-MM-DD-HH');
+//                                console.log('KEY: ' + hourKey);
+                                
+                                var hourCount = hourCounts[hourKey];
+                                
+                                if (hourCount == undefined) {
+                                	hourCount = 0;
+                                }
+                                
+                                hourCount += 1;
+                                
+                                if (hourCount > countMax) {
+                                	countMax = hourCount;
+                                }
+                                
+                                hourCounts[hourKey] = hourCount;
                                 
                                 if (earliestPoint == null || visit["date"] < earliestPoint) {
                                     earliestPoint = visit["date"];
@@ -487,7 +531,6 @@
                 //                              }));
                                         }
 
-                    
                                         d3.layout.cloud().size([width, height])
                                             .words(words)
                                             .padding(5)
@@ -1052,11 +1095,196 @@
 
                                             refreshVisits();
                                         });
+                                        
+                                        var refreshHeatMap = function(selected_week) {
+                                        	console.log("HEAT WEEK: " + selected_week.format('YYYY-MM-DD'));
+
+											var clickEnd = moment(selected_week);
+											clickEnd.add(6, "days");
+											
+											$("span#heat_week").html(selected_week.format("MMMM D") + " to " + clickEnd.format("MMMM D"));
+                                        	
+                                        	var dataset = [];
+                                        	
+                                        	var date_index = moment(selected_week);
+                                        	date_index.subtract(7, "days");
+                                        	
+                                        	for (var i = 0; i < 7; i++) {
+                                        		for (var j = 0; j < 24; j++) {
+                                        		//format('YYYY-MM-DD-HH')
+                                        			var hour = "" + j;
+                                        			
+                                        			if (hour.length < 2) {
+                                        				hour = "0" + hour;
+                                        			}
+                                        		
+                                        			var key = date_index.format('YYYY-MM-DD') + '-' + hour;
+                                        			var count = hourCounts[key];
+                                        			
+                                        			if (count == undefined) {
+                                        				count = 0;
+                                        			}
+                                        			
+                                        			dataset.push({ "day": i, "hour": j,  "value": count });
+                                        		}
+                                        		
+                                        		date_index.add(1, "days");
+                                        	}
+                                        	
+											var margin = { top: 50, right: 0, bottom: 100, left: 30 },
+												width = 960 - margin.left - margin.right,
+												height = 430 - margin.top - margin.bottom,
+												gridSize = Math.floor(width / 24),
+												legendElementWidth = gridSize*2,
+												buckets = 9,
+												colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"], // alternatively colorbrewer.YlGnBu[9]
+												days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+												times = ["12a", "1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12p", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p"];
+
+											$("div#viz_time_heat").html("");
+
+											var svg = d3.select("#viz_time_heat").append("svg")
+												.attr("width", width + margin.left + margin.right)
+												.attr("height", height + margin.top + margin.bottom)
+												.append("g")
+												.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+											var dayLabels = svg.selectAll(".dayLabel")
+												.data(days)
+												.enter().append("text")
+													.text(function (d) { return d; })
+													.attr("x", 0)
+													.attr("y", function (d, i) { return i * gridSize; })
+													.style("text-anchor", "end")
+													.attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+													.attr("class", function (d, i) { return ((i >= 1 && i <= 5) ? "dayLabel mono axis axis-workweek" : "dayLabel mono axis"); });
+
+											var timeLabels = svg.selectAll(".timeLabel")
+												.data(times)
+												.enter().append("text")
+													.text(function(d) { return d; })
+													.attr("x", function(d, i) { return i * gridSize; })
+													.attr("y", 0)
+													.style("text-anchor", "middle")
+													.attr("transform", "translate(" + gridSize / 2 + ", -6)")
+													.attr("class", function(d, i) { return ((i >= 8 && i <= 17) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"); });
+
+											var colorScale = d3.scale.quantile()
+												.domain([0, buckets - 1, countMax])
+												.range(colors);
+
+											var cards = svg.selectAll(".hour")
+												.data(dataset, function(d) {return d.day+':' + d.hour;});
+
+											cards.append("title");
+
+											var tooltip = d3.select("body")
+												.append("div")
+												.style("position", "absolute")
+												.style("z-index", "10")
+												.style("visibility", "hidden")
+												.style("color", "white")
+												.style("padding", "8px")
+												.style("background-color", "rgba(0, 0, 0, 0.75)")
+												.style("border-radius", "6px")
+												.style("font", "12px sans-serif")
+												.text("tooltip");
+
+											cards.enter().append("rect")
+												.attr("x", function(d) { return (d.hour) * gridSize; })
+												.attr("y", function(d) { return (d.day) * gridSize; })
+												.attr("rx", 4)
+												.attr("ry", 4)
+												.attr("class", "hour bordered")
+												.attr("width", gridSize)
+												.attr("height", gridSize)
+												.on("mouseover", function(d){
+													tooltip.text("Visits: " + d.value);
+													tooltip.style("visibility", "visible");
+												})
+												.on("mousemove", function() {
+													return tooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");
+												})
+												.on("mouseout", function(){
+													return tooltip.style("visibility", "hidden");
+												})
+												.style("fill", colors[0]);
+
+											cards.transition().duration(2000)
+												.style("fill", function(d) { return colorScale(d.value); });
+
+											cards.exit().remove();
+
+											var legend = svg.selectAll(".legend")
+												.data([0].concat(colorScale.quantiles()), function(d) { return d; });
+
+											legend.enter().append("g")
+												.attr("class", "legend");
+
+											legend.append("rect")
+												.attr("x", function(d, i) { return legendElementWidth * i; })
+												.attr("y", height)
+												.attr("width", legendElementWidth)
+												.attr("height", gridSize / 2)
+												.style("fill", function(d, i) { return colors[i]; });
+
+											legend.append("text")
+												.attr("class", "mono")
+												.text(function(d) { return "≥ " + Math.round(d); })
+												.attr("x", function(d, i) { return legendElementWidth * i; })
+												.attr("y", height + gridSize);
+
+											legend.exit().remove();  
+                                        };
+                                        
+                                        var now = moment();
+                                        now.hour(0);
+                                        now.minute(0);
+                                        now.second(0);
+                                        now.millisecond(0);
+                                        
+                                        while (now.day() > 0) {
+                                        	now.add(1, "days");
+                                        }
+
+										var week_index = moment(now);
+										
+										var dropdown_html = "";
+										
+										while (week_index >= earliestPoint) {
+											var week_start = moment(week_index);
+											week_start.subtract(7, "days");
+
+											var week_end = moment(week_index);
+											week_end.subtract(1, "seconds");
+											
+											console.log(week_start.format('YYYY-MM-DD') + " -> " + week_end.format('YYYY-MM-DD'));
+											
+											dropdown_html += "<li><a href='#' class='heat_week_item' id='heat_week_" + week_start.format('YYYY-MM-DD') + "'>" + week_start.format('MMM Do') + " to " + week_end.format('MMM Do') + "</a></li>";
+											
+											week_index.subtract(7, "days");
+										}
+									
+										$("#heat_week_dropdown").html(dropdown_html);
+
+										$("a.heat_week_item").click(function(e) {
+											e.preventDefault();
+											
+											var clickDate = moment($(e.target).attr('id').replace('heat_week_', ''));
+
+	                                        refreshHeatMap(clickDate);
+										});
+										
+										var this_week = moment(now);
+										this_week.subtract(7, "days");
+
+                                        refreshHeatMap(this_week);
                                     };
 
                                     $("#nav_network").show();
                                     $("#nav_sites_visited").show();
                                     $("#nav_search_terms").show();
+                                    $("#nav_time_heat").show();
 
                                     $("#start_date").removeAttr("disabled");
                                     $("#end_date").removeAttr("disabled");
@@ -1076,6 +1304,8 @@
                                 }).done(function() {
         //                          sessionStorage.setItem("cats", JSON.stringify(cats));
                                 });
+                                
+                                
                             }
                         });
                     };
@@ -1088,11 +1318,15 @@
                     $("#nav_network").hide();
                     $("#nav_sites_visited").hide();
                     $("#nav_search_terms").hide();
+                    $("#nav_time_heat").hide();
                     
                     $("div#all_data").hide();
                     $("div#network").hide();
                     $("div#sites_visited").hide();
                     $("div#search_terms").hide();
+                    $("div#time_heat").hide();
+
+					$('.dropdown-toggle').dropdown()
 
                     loadData("{% url 'historian_visualization_data' source_id 0 %}");
                 });
