@@ -22,4 +22,4 @@ class UrlCategory(models.Model):
     priority = models.IntegerField(default=0)
     category = models.CharField(max_length=1024, default='Other')
     match_type = models.CharField(max_length=1024, choices=SEARCH_TYPES)
-    match_value = models.CharField(max_length=1024, default='')
+    match_value = models.CharField(max_length=1024, default='', blank=True)

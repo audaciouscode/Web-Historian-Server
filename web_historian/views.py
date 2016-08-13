@@ -87,7 +87,7 @@ def categories_json(request):
     
     categories = []
     
-    for category in UrlCategory.objects.all().order_by('priority'):
+    for category in UrlCategory.objects.all().order_by('-priority'):
         cat_obj = {}
         cat_obj['search'] = category.match_type
         cat_obj['value'] = category.match_value
