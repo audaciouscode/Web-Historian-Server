@@ -1,4 +1,4 @@
-{% extends "historian_base.html" %}
+ap {% extends "historian_base.html" %}
 {% load static from staticfiles %}
 {% load passive_data_kit %}
 
@@ -32,7 +32,10 @@
     </p>
     
     <button id="date_refresh" class="btn btn-primary disabled">Refresh Data</button>
-        
+    
+    <div style="position: absolute; bottom: 0; width: 100%; padding-bottom: 1em;">
+    	<a href="#" id="clear_data">Clear your contributions?</a>
+    </div>
 {% endblock %}
 
 {% block content %}
@@ -51,7 +54,6 @@
 	                	<div style="width: {{ avg_domains_bar }}%; background-color: #757575; display: inline-block;">&nbsp;</div><span style="margin: 0.5em;">{{ avg_domains }} (Average Web Historian User)</span>
 	                </div>
 				</div>
-
 
                 <div style="margin-top: 20px;">
                 	<label>Searches</label>
@@ -115,6 +117,17 @@
                 <div id="viz_time_heat"></div>
             </div>
             <script>
+				$.ajaxSetup({ 
+					beforeSend: function(xhr, settings) 
+					{
+						if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) 
+						{
+							// Only send the token to relative URLs i.e. locally.
+							xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+						}
+					}
+				});
+
                 var visitsSelected = true;
                 
                 var domainForUrl = function(parser) {
@@ -1329,8 +1342,86 @@
 					$('.dropdown-toggle').dropdown()
 
                     loadData("{% url 'historian_visualization_data' source_id 0 %}");
+                    
+                    $("#clear_data").click(function(e) {
+                    	e.preventDefault();
+                    	console.log("click delete");
+                    	
+                    	$('#delete_modal').modal('show');
+                    	
+                    	$("#button_delete_contributions").click(function(e) {
+                    		
+                    		var payload = {};
+                    		
+                    		payload["value"] = $("input[name=why_delete]:checked").val();
+                    		
+                    		if (payload["value"] == "other_reason") {
+								payload["other_reason"] = $("#delete_other_reason").val();
+                    		}
+
+							$('#delete_confirm').modal('show');
+
+                    		$("#delete_modal").modal("hide");
+                    		
+							$.post("{% url 'historian_user_delete' source_id %}", payload, function(data) {
+								window.location = "http://www.webhistorian.org";
+							});
+                    	});
+                    });
                 });
             </script>
         </div>
     </div>
+
+	<div class="modal fade" id="delete_modal" tabindex="-1" role="dialog" aria-labelledby="delete_modal_label">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="delete_modal_label">Delete Contributions?</h4>
+				</div>
+				<div class="modal-body">
+					<p>Why would you like to delete your contributions?</p>
+
+					<div class="radio">
+						<label>
+							<input type="radio" name="why_delete" value="no_intent"> I didn't intend to contribute, I pressed the wrong button.
+						</label>
+					</div>
+
+					<div class="radio">
+						<label>
+							<input type="radio" name="why_delete" value="changed_mind"> I intended to contribute initially, but I changed my mind.
+						</label>
+					</div>
+
+					<div class="radio">
+						<label>
+							<input type="radio" name="why_delete" value="other_reason"> Other reason:
+						</label>
+					</div>
+					
+					<div class="form-group">
+						<input type="text" class="form-control" placeholder="Enter reason" id="delete_other_reason" />
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="button_delete_contributions">Delete Contributions</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="delete_confirm" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-body">
+					<p style="text-align: center; padding-top: 1em;">
+						Clearing your contribution&#8230;
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>	
 {% endblock %}

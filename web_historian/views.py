@@ -1,16 +1,19 @@
 import datetime
 import hashlib
+import time
 
 import idsentence
 import numpy
 
 from django.conf import settings
+from django.core.context_processors import csrf
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, HttpResponseNotAllowed, JsonResponse, HttpResponseNotFound, FileResponse
 
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
+from django.utils import timezone
 
-from passive_data_kit.models import DataPoint
+from passive_data_kit.models import DataPoint, DataBundle
 
 from .models import UrlAction, ProvidedIdentifier, UrlCategory
 
@@ -124,6 +127,42 @@ def historian_visualization_data(request, source_id, page):
         pass
         
     return HttpResponseNotFound()
+
+def historian_user_delete(request, source_id):
+    data_hash = hash_for_source_id(source_id)
+    
+    if data_hash is not None:
+        points = DataPoint.objects.filter(source=data_hash)
+        bundles = DataBundle.objects.filter(properties__0__contains={ 'passive-data-kit': { 'source': data_hash }})
+    
+        payload = {}
+        payload['passive-data-metadata'] = {}
+        payload['passive-data-metadata']['source'] = 'web-historian-server'
+        payload['passive-data-metadata']['generator-id'] = 'web-historian-server-deletion'
+        payload['passive-data-metadata']['generator'] = 'Web Historian Server Deletion'
+        payload['passive-data-metadata']['timestamp'] = time.mktime(datetime.datetime.timetuple(timezone.now()))
+        payload['points-deleted'] = points.count()
+        payload['bundles-deleted'] = bundles.count()
+        payload['source_id'] = data_hash
+        
+        if 'value' in request.POST:
+            payload['why_deleted'] = request.POST['value']
+
+        if 'other_reason' in request.POST:
+            payload['other_reason'] = request.POST['other_reason']
+            
+        delete_point = DataPoint(source=payload['passive-data-metadata']['source'])
+        delete_point.generator = payload['passive-data-metadata']['generator'] 
+        delete_point.generator_identifier = payload['passive-data-metadata']['generator-id'] 
+        delete_point.created = timezone.now()
+        delete_point.recorded = delete_point.created
+        delete_point.properties = payload
+        delete_point.save()
+        
+        points.delete()
+        bundles.delete()
+    
+    return HttpResponse('{ "success": true }', content_type='application/json')
     
 def historian_user_home(request, source_id):
     data_hash = hash_for_source_id(source_id)
@@ -136,19 +175,20 @@ def historian_user_home(request, source_id):
         response.status_code = 403
         
         return response
-    
+
     c = RequestContext(request)
+    c.update(csrf(request))
     c['source_id'] = source_id
-    
+
     last_usage_compare = DataPoint.objects.filter(generator_identifier='web-historian-behavior-metadata').order_by('-created').first()
-    
+
     if last_usage_compare is not None:
         my_data = None
         
         domain_counts = []
         search_counts = []
         visit_counts = []
-        
+
         for source, value in last_usage_compare.properties.iteritems():
             if source == data_hash:
                 my_data = value
@@ -157,14 +197,25 @@ def historian_user_home(request, source_id):
                   domain_counts.append(value['domains'])
                   search_counts.append(value['searches'])
                   visit_counts.append(value['visits'])
-
+                  
         c['compare_end'] = last_usage_compare.created
         c['compare_start'] = last_usage_compare.created - datetime.timedelta(days=7)
-        
-        c['avg_domains'] = numpy.median(domain_counts)
-        c['avg_searches'] = numpy.median(search_counts)
-        c['avg_visits'] = numpy.median(visit_counts)
-                  
+
+        if len(domain_counts) > 0:
+            c['avg_domains'] = numpy.median(domain_counts)
+        else: 
+            c['avg_domains'] = 0
+            
+        if len(search_counts) > 0:
+            c['avg_searches'] = numpy.median(search_counts)
+        else: 
+            c['avg_searches'] = 0
+            
+        if len(visit_counts) > 0:
+            c['avg_visits'] = numpy.median(visit_counts)
+        else:
+            c['avg_visits'] = 0
+
         if my_data is not None:
             c['my_domains'] = my_data['domains']
             
