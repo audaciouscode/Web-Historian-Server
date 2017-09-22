@@ -31,7 +31,7 @@ script:
 #  - git clone https://github.com/audaciouscode/PassiveDataKit-Django.git
 #  - mv PassiveDataKit-Django passive_data_kit
   - pip install -r passive_data_kit/requirements.txt
-  - cp pdk_site/local_settings.travis.py pdk_site/local_settings.py
+  - cp historian/local_settings.travis.py historian/local_settings.py
   - python manage.py migrate
   - python manage.py test
   - pylint passive_data_kit

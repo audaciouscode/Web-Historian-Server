@@ -85,7 +85,7 @@ def viz_template(source, identifier):
 
 def compile_report(generator, sources): # pylint: disable=too-many-branches, too-many-statements
     if generator == 'web-historian':
-        filename = '/tmp/pdk_' + generator + '.txt'
+        filename = tempfile.gettempdir() + '/pdk_' + generator + '.txt'
 
         with open(filename, 'w') as outfile:
             writer = csv.writer(outfile, delimiter='\t')

@@ -29,7 +29,7 @@ def hash_for_source_id(source_id):
 
     for source_hash in hashes:
         for day in days:
-            md5_hash = hashlib.md5()
+            md5_hash = hashlib.md5() # nosec
 
             md5_hash.update(source_hash + day)
 
