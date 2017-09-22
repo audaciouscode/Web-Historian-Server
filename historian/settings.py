@@ -19,20 +19,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'a6jtumpdkofb8%lg=^%cv-*8e(46(l(zm(9(_(_7wjhgg$(m7r'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
-ALLOWED_HOSTS = [ 'historian.audacious-software.com']
-
-ADMINS = (
-    ('Chris Karr', 'chris@audacious-software.com'),
-)
-
-# Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,8 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'passive_data_kit',
     'web_historian',
+    'passive_data_kit',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -80,27 +66,6 @@ WSGI_APPLICATION = 'passive_data_kit.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME':'historian',
-        'USER': 'historian',
-        'PASSWORD': '7jhghjv7tuyt67',
-        'HOST': '127.0.0.1',
-    }
-}
-
-if 'TRAVIS' in os.environ:
-    DATABASES = {
-        'default': {
-            'ENGINE':   'django.contrib.gis.db.backends.postgis',
-            'NAME':     'travisci',
-            'USER':     'postgres',
-            'PASSWORD': '',
-            'HOST':     'localhost',
-            'PORT':     '',
-        }
-    }
 
 
 # Password validation
@@ -136,13 +101,4 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.9/howto/static-files/
-
-STATIC_URL = '/static/'
-STATIC_ROOT = '/var/www/django/pdk_site/static'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/var/www/django/pdk_site/media'
-
-SITE_URL = 'https://historian.audacious-software.com/'
+from local_settings import *

@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """Implement a memorable ID string.
 
 The original idea for this comes from Asana where it is documented on their

@@ -1,37 +1,40 @@
+# pylint: disable=no-member,line-too-long
+
 import calendar
 import datetime
 import codecs
 import csv
 import json
+import tempfile
 
 from django.template.loader import render_to_string
 
-from passive_data_kit.models import DataPoint
+from passive_data_kit.models import DataPoint, install_supports_jsonfield
 
 PAGE_SIZE = 10000
 
 def name_for_generator(identifier):
     if identifier == 'web-historian':
         return 'Web Historian Web Visits'
-        
+
     return None
-    
-    
+
+
 def compile_visualization(identifier, points_query, folder):
     if identifier == 'web-historian':
         points_query = points_query.order_by('-created')
-        
+
         count = points_query.count()
-        
+
         page = 0
         index = 0
-        
+
         while index < count:
             visits = []
 
             for point in points_query[index:(index + PAGE_SIZE)]:
                 visit = {}
-            
+
                 visit['url'] = point.properties['url']
                 visit['date'] = point.properties['date']
                 visit['title'] = point.properties['title']
@@ -39,33 +42,33 @@ def compile_visualization(identifier, points_query, folder):
                 visit['parent_id'] = point.properties['refVisitId']
                 visit['search_terms'] = point.properties['searchTerms']
                 visit['transition'] = point.properties['transType']
-            
+
                 visits.append(visit)
-                
+
             output = {}
-            
+
             if (index + PAGE_SIZE) < count:
                 output['next'] = 'visualization-' + str(page + 1) + '.json'
-                
+
             pages = int(count / PAGE_SIZE)
-            
+
             if count % PAGE_SIZE != 0:
                 pages += 1
-            
+
             output['pages'] = pages
             output['page'] = page
             output['visits'] = visits
-            
+
             filename = 'visualization-' + str(page) + '.json'
-            
+
             if page == 0:
                 filename = 'visualization.json'
-    
+
             path = folder + '/' + filename
 
             with codecs.open(path, 'w', 'utf-8') as outfile:
                 outfile.write(unicode(json.dumps(output, indent=2, ensure_ascii=False)))
-            
+
             index += PAGE_SIZE
             page += 1
 
@@ -75,30 +78,30 @@ def viz_template(source, identifier):
             'source': source,
             'identifier': identifier,
         }
-        
+
         return render_to_string('table_web_historian.html', context)
-    
+
     return None
-    
-def compile_report(generator, sources):
+
+def compile_report(generator, sources): # pylint: disable=too-many-branches, too-many-statements
     if generator == 'web-historian':
         filename = '/tmp/pdk_' + generator + '.txt'
-    
+
         with open(filename, 'w') as outfile:
             writer = csv.writer(outfile, delimiter='\t')
-    
+
             writer.writerow(['Source', 'Generator', 'Generator Identifier', 'Created Timestamp', 'Created Date', 'Recorded Timestamp', 'Recorded Date', 'Visit ID', 'URL ID', 'Referrer ID', 'Domain', 'Protocol', 'URL', 'Title', 'Top Domain', 'Search Terms', 'Transition Type', 'Timestamp', 'Date'])
-    
+
             for source in sources:
                 points = DataPoint.objects.filter(source=source, generator_identifier=generator).order_by('created')
-            
+
                 index = 0
                 count = points.count()
 
                 while index < count:
                     for point in points[index:(index + 5000)]:
                         row = []
-            
+
                         row.append(point.source)
                         row.append(point.generator)
                         row.append(point.generator_identifier)
@@ -161,7 +164,7 @@ def compile_report(generator, sources):
                             timestamp = float(point.properties['date']) / 1000
 
                             row.append(str(timestamp))
-                            
+
                             date_obj = datetime.datetime.utcfromtimestamp(timestamp)
 
                             row.append(date_obj.isoformat())
@@ -170,11 +173,68 @@ def compile_report(generator, sources):
                             row.append('')
 
                         row = [s.encode('utf-8') for s in row]
-                        
+
                         writer.writerow(row)
-                
+
                     index += 5000
-        
+
         return filename
-        
+    elif generator == 'pdk-app-event':
+        filename = tempfile.gettempdir() + '/pdk_' + generator + '.txt'
+
+        with open(filename, 'w') as outfile:
+            writer = csv.writer(outfile, delimiter='\t')
+
+            writer.writerow([
+                'Source',
+                'Created Timestamp',
+                'Created Date',
+                'Event Name',
+                'Session ID',
+                'Step',
+                'Event Properties'
+            ])
+
+            for source in sources:
+                points = DataPoint.objects.filter(source=source, generator_identifier=generator).order_by('created')
+
+                index = 0
+                count = points.count()
+
+                while index < count:
+                    for point in points[index:(index + 5000)]:
+                        row = []
+
+                        row.append(point.source)
+                        row.append(calendar.timegm(point.created.utctimetuple()))
+                        row.append(point.created.isoformat())
+
+                        properties = {}
+
+                        if install_supports_jsonfield():
+                            properties = point.properties
+                        else:
+                            properties = json.loads(point.properties)
+
+                        row.append(properties['event_name'])
+
+                        if 'event_details' in properties:
+                            if 'session_id' in properties['event_details']:
+                                row.append(properties['event_details']['session_id'])
+                            else:
+                                row.append(None)
+
+                            if 'step' in properties['event_details']:
+                                row.append(properties['event_details']['step'])
+                            else:
+                                row.append(None)
+
+                            row.append(json.dumps(properties['event_details']))
+
+                        writer.writerow(row)
+
+                    index += 5000
+
+        return filename
+
     return None
