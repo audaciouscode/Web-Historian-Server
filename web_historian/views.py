@@ -34,7 +34,7 @@ def hash_for_source_id(source_id):
             md5_hash.update(source_hash + day)
 
             if md5_hash.hexdigest() == source_id:
-                return hash
+                return md5_hash.hexdigest()
 
     return None
 
