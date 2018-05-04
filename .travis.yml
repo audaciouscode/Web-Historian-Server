@@ -1,29 +1,29 @@
+dist: trusty
+
+env:
+
 language: python
 
 python:
   - 2.7
 
-service:
-  - postgresql
-
 addons:
   postgresql: 9.5
   apt:
     packages:
-      - postgresql-9.5-postgis-2.4
-      - postgresql-9.5-postgis-scripts
+    - spatialite-bin
+    - postgresql-9.5-postgis-2.3
   
 before_install:
-  - export PYTHONPATH=$HOME/builds/audaciouscode/Web-Historian-Server
+  - export PYTHONPATH=$HOME/builds/audaciouscode/pdk
   
 install:
   - pip install -r requirements.txt
+  - pip install git+git://github.com/tinio/pysqlite.git@extension-enabled#egg=pysqlite
 
 before_script:
-  - sudo cp /etc/postgresql/9.4/main/pg_hba.conf /etc/postgresql/9.5/main/pg_hba.conf
-  - sudo /etc/init.d/postgresql restart
   - psql -U postgres -c "create extension postgis"
-  - psql -c "CREATE DATABASE travisci;" -U postgres
+  - psql -U postgres -c "CREATE DATABASE travisci;" 
   - psql -U postgres -c "CREATE EXTENSION postgis" -d travisci
   - psql -U postgres -c "CREATE EXTENSION postgis_topology" -d travisci
 
