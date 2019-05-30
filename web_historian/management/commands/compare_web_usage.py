@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, no-member
 
 import datetime
 
@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from passive_data_kit.decorators import handle_lock
-from passive_data_kit.models import DataPoint
+from passive_data_kit.models import DataPoint, DataSourceReference
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
@@ -30,10 +30,8 @@ class Command(BaseCommand):
 
         metadata = {}
 
-        sources = DataPoint.objects.order_by('source').values_list('source', flat=True).distinct()
-
-        for source in sources:
-            points = DataPoint.objects.filter(source=source, created__gte=start)
+        for source_reference in DataSourceReference.objects.all():
+            points = DataPoint.objects.filter(source_reference=source_reference, created__gte=start)
 
             search_count = 0
 
@@ -52,7 +50,7 @@ class Command(BaseCommand):
             source_metadata['searches'] = search_count
             source_metadata['domains'] = len(domains)
 
-            metadata[source] = source_metadata
+            metadata[source_reference.source] = source_metadata
 
         metadata_point = DataPoint(source='web-historian-server', generator='Web Historian: Behavior Metadata', generator_identifier='web-historian-behavior-metadata')
         metadata_point.created = now
@@ -67,3 +65,5 @@ class Command(BaseCommand):
         metadata_point.properties = metadata
 
         metadata_point.save()
+        metadata_point.fetch_source_reference()
+        metadata_point.fetch_generator_definition()
