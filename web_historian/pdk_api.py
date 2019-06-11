@@ -242,7 +242,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                         row = []
 
                         row.append(point.source)
-                        
+
                         row.append(calendar.timegm(point.created.utctimetuple()))
                         row.append(point.created.isoformat())
 
