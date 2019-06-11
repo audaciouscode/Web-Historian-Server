@@ -83,7 +83,7 @@ def viz_template(source, identifier):
 
     return None
 
-def compile_report(generator, sources, data_start=None, data_end=None): # pylint: disable=too-many-branches, too-many-statements, too-many-locals
+def compile_report(generator, sources, data_start=None, data_end=None, date_type='created'): # pylint: disable=too-many-branches, too-many-statements, too-many-locals
     if generator == 'web-historian':
         filename = tempfile.gettempdir() + '/pdk_' + generator + '.txt'
 
@@ -93,13 +93,22 @@ def compile_report(generator, sources, data_start=None, data_end=None): # pylint
             writer.writerow(['Source', 'Generator', 'Generator Identifier', 'Created Timestamp', 'Created Date', 'Recorded Timestamp', 'Recorded Date', 'Visit ID', 'URL ID', 'Referrer ID', 'Domain', 'Protocol', 'URL', 'Title', 'Top Domain', 'Search Terms', 'Transition Type', 'Timestamp', 'Date'])
 
             for source in sources:
-                points = DataPoint.objects.filter(source=source, generator_identifier=generator)
+                source_reference = DataSourceReference.reference_for_source(source)
+                generator_definition = DataGeneratorDefinition.defintion_for_identifier(generator)
+
+                points = DataPoint.objects.filter(source_reference=source_reference, generator_definition=generator_definition)
 
                 if data_start is not None:
-                    points = points.filter(created__gte=data_start)
+                    if date_type == 'recorded':
+                        points = points.filter(recorded__gte=data_start)
+                    else:
+                        points = points.filter(created__gte=data_start)
 
                 if data_end is not None:
-                    points = points.filter(created__lte=data_end)
+                    if date_type == 'recorded':
+                        points = points.filter(recorded__lte=data_end)
+                    else:
+                        points = points.filter(created__lte=data_end)
 
                 points = points.order_by('source', 'created')
 
@@ -197,6 +206,8 @@ def compile_report(generator, sources, data_start=None, data_end=None): # pylint
                 'Source',
                 'Created Timestamp',
                 'Created Date',
+                'Recorded Timestamp',
+                'Recorded Date',
                 'Event Name',
                 'Session ID',
                 'Step',
@@ -204,13 +215,22 @@ def compile_report(generator, sources, data_start=None, data_end=None): # pylint
             ])
 
             for source in sources:
-                points = DataPoint.objects.filter(source=source, generator_identifier=generator)
+                source_reference = DataSourceReference.reference_for_source(source)
+                generator_definition = DataGeneratorDefinition.defintion_for_identifier(generator)
+
+                points = DataPoint.objects.filter(source_reference=source_reference, generator_definition=generator_definition)
 
                 if data_start is not None:
-                    points = points.filter(created__gte=data_start)
+                    if date_type == 'recorded':
+                        points = points.filter(recorded__gte=data_start)
+                    else:
+                        points = points.filter(created__gte=data_start)
 
                 if data_end is not None:
-                    points = points.filter(created__lte=data_end)
+                    if date_type == 'recorded':
+                        points = points.filter(recorded__lte=data_end)
+                    else:
+                        points = points.filter(created__lte=data_end)
 
                 points = points.order_by('source', 'created')
 
@@ -222,8 +242,12 @@ def compile_report(generator, sources, data_start=None, data_end=None): # pylint
                         row = []
 
                         row.append(point.source)
+                        
                         row.append(calendar.timegm(point.created.utctimetuple()))
                         row.append(point.created.isoformat())
+
+                        row.append(calendar.timegm(point.recorded.utctimetuple()))
+                        row.append(point.recorded.isoformat())
 
                         properties = {}
 
