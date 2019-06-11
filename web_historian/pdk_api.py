@@ -9,7 +9,7 @@ import tempfile
 
 from django.template.loader import render_to_string
 
-from passive_data_kit.models import DataPoint, install_supports_jsonfield
+from passive_data_kit.models import DataPoint, DataSourceReference, DataGeneratorDefinition, install_supports_jsonfield
 
 PAGE_SIZE = 10000
 
