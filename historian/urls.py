@@ -20,4 +20,5 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^data/', include('passive_data_kit.urls')),
     url(r'^historian/', include('web_historian.urls')),
+    url(r'^monitor/', include('nagios_monitor.urls')),
 ]

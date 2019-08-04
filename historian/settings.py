@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'web_historian',
     'passive_data_kit',
+    'nagios_monitor',
 ]
 
 MIDDLEWARE_CLASSES = [
