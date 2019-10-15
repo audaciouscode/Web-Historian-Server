@@ -50,3 +50,5 @@ if 'TRAVIS' in os.environ:
             'PORT':     '',
         }
     }
+
+WH_IGNORE_SOURCES = []

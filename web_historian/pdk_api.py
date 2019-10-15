@@ -7,6 +7,7 @@ import csv
 import json
 import tempfile
 
+from django.conf import settings
 from django.template.loader import render_to_string
 
 from passive_data_kit.models import DataPoint, DataSourceReference, DataGeneratorDefinition, install_supports_jsonfield
@@ -87,6 +88,9 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
     if generator == 'web-historian':
         filename = tempfile.gettempdir() + '/pdk_' + generator + '.txt'
 
+        for ignore_source in settings.WH_IGNORE_SOURCES:
+            sources.remove(ignore_source)
+
         with open(filename, 'w') as outfile:
             writer = csv.writer(outfile, delimiter='\t')
 
@@ -94,6 +98,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
 
             for source in sources:
                 source_reference = DataSourceReference.reference_for_source(source)
+
                 generator_definition = DataGeneratorDefinition.defintion_for_identifier(generator)
 
                 points = DataPoint.objects.filter(source_reference=source_reference, generator_definition=generator_definition)
