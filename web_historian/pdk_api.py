@@ -198,6 +198,8 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
 
                         writer.writerow(row)
 
+                        outfile.flush()
+
                     index += 5000
 
         return filename
@@ -279,6 +281,96 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
                         writer.writerow(row)
 
                     index += 5000
+
+                    writer.writerow(row)
+
+                    outfile.flush()
+
+        return filename
+    elif generator == 'web-historian-behavior-metadata':
+        filename = tempfile.gettempdir() + '/pdk_' + generator + '.txt'
+
+        with open(filename, 'w') as outfile:
+            writer = csv.writer(outfile, delimiter='\t')
+
+            writer.writerow([
+                'Source',
+                'Created Timestamp',
+                'Created Date',
+                'Recorded Timestamp',
+                'Recorded Date',
+                'Participant ID',
+                'Domains',
+                'Searches',
+                'Visits'
+            ])
+
+            rows = 0
+
+            for source in sources:
+                source_reference = DataSourceReference.reference_for_source(source)
+                generator_definition = DataGeneratorDefinition.defintion_for_identifier(generator)
+
+                points = DataPoint.objects.filter(source_reference=source_reference, generator_definition=generator_definition)
+
+                if data_start is not None:
+                    if date_type == 'recorded':
+                        points = points.filter(recorded__gte=data_start)
+                    else:
+                        points = points.filter(created__gte=data_start)
+
+                if data_end is not None:
+                    if date_type == 'recorded':
+                        points = points.filter(recorded__lte=data_end)
+                    else:
+                        points = points.filter(created__lte=data_end)
+
+                points = points.order_by('source', 'created')
+
+                seen = {}
+
+                count = points.count()
+
+                for point in points.iterator():
+                    properties = {}
+
+                    if install_supports_jsonfield():
+                        properties = point.properties
+                    else:
+                        properties = json.loads(point.properties)
+
+                    for key in properties:
+                        if key != 'passive-data-metadata' and key != 'web-historian-server':
+                            participant = properties[key]
+
+                            if (key in seen) is False:
+                                seen[key] = {}
+
+                            if seen[key] != participant:
+                                row = []
+
+                                row.append(point.source)
+
+                                row.append(calendar.timegm(point.created.utctimetuple()))
+                                row.append(point.created.isoformat())
+
+                                row.append(calendar.timegm(point.recorded.utctimetuple()))
+                                row.append(point.recorded.isoformat())
+
+                                row.append(key)
+                                row.append(participant['domains'])
+                                row.append(participant['searches'])
+                                row.append(participant['visits'])
+
+                                writer.writerow(row)
+
+                                rows += 1
+
+                                seen[key] = participant
+
+                            outfile.flush()
+
+                    properties = None
 
         return filename
 
