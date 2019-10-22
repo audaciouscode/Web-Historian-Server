@@ -117,90 +117,86 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
 
                 points = points.order_by('source', 'created')
 
-                index = 0
                 count = points.count()
 
-                while index < count:
-                    for point in points[index:(index + 5000)]:
-                        row = []
+                for point in points.iterator():
+                    row = []
 
-                        row.append(point.source)
-                        row.append(point.generator)
-                        row.append(point.generator_identifier)
-                        row.append(str(calendar.timegm(point.created.utctimetuple())))
-                        row.append(point.created.isoformat())
-                        row.append(str(calendar.timegm(point.recorded.utctimetuple())))
-                        row.append(point.recorded.isoformat())
+                    row.append(point.source)
+                    row.append(point.generator)
+                    row.append(point.generator_identifier)
+                    row.append(str(calendar.timegm(point.created.utctimetuple())))
+                    row.append(point.created.isoformat())
+                    row.append(str(calendar.timegm(point.recorded.utctimetuple())))
+                    row.append(point.recorded.isoformat())
 
-                        if 'id' in point.properties:
-                            row.append(str(point.properties['id']))
-                        else:
-                            row.append('')
+                    if 'id' in point.properties:
+                        row.append(str(point.properties['id']))
+                    else:
+                        row.append('')
 
-                        if 'urlId' in point.properties:
-                            row.append(str(point.properties['urlId']))
-                        else:
-                            row.append('')
+                    if 'urlId' in point.properties:
+                        row.append(str(point.properties['urlId']))
+                    else:
+                        row.append('')
 
-                        if 'refVisitId' in point.properties:
-                            row.append(str(point.properties['refVisitId']))
-                        else:
-                            row.append('')
+                    if 'refVisitId' in point.properties:
+                        row.append(str(point.properties['refVisitId']))
+                    else:
+                        row.append('')
 
-                        if 'domain' in point.properties:
-                            row.append(point.properties['domain'])
-                        else:
-                            row.append('')
+                    if 'domain' in point.properties:
+                        row.append(point.properties['domain'])
+                    else:
+                        row.append('')
 
-                        if 'protocol' in point.properties:
-                            row.append(point.properties['protocol'])
-                        else:
-                            row.append('')
+                    if 'protocol' in point.properties:
+                        row.append(point.properties['protocol'])
+                    else:
+                        row.append('')
 
-                        if 'url' in point.properties:
-                            row.append(point.properties['url'])
-                        else:
-                            row.append('')
+                    if 'url' in point.properties:
+                        row.append(point.properties['url'])
+                    else:
+                        row.append('')
 
-                        if 'title' in point.properties:
-                            row.append(point.properties['title'])
-                        else:
-                            row.append('')
+                    if 'title' in point.properties:
+                        row.append(point.properties['title'])
+                    else:
+                        row.append('')
 
-                        if 'topDomain' in point.properties:
-                            row.append(point.properties['topDomain'])
-                        else:
-                            row.append('')
+                    if 'topDomain' in point.properties:
+                        row.append(point.properties['topDomain'])
+                    else:
+                        row.append('')
 
-                        if 'searchTerms' in point.properties:
-                            row.append(point.properties['searchTerms'])
-                        else:
-                            row.append('')
+                    if 'searchTerms' in point.properties:
+                        row.append(point.properties['searchTerms'])
+                    else:
+                        row.append('')
 
-                        if 'transType' in point.properties:
-                            row.append(point.properties['transType'])
-                        else:
-                            row.append('')
+                    if 'transType' in point.properties:
+                        row.append(point.properties['transType'])
+                    else:
+                        row.append('')
 
-                        if 'date' in point.properties:
-                            timestamp = float(point.properties['date']) / 1000
+                    if 'date' in point.properties:
+                        timestamp = float(point.properties['date']) / 1000
 
-                            row.append(str(timestamp))
+                        row.append(str(timestamp))
 
-                            date_obj = datetime.datetime.utcfromtimestamp(timestamp)
+                        date_obj = datetime.datetime.utcfromtimestamp(timestamp)
 
-                            row.append(date_obj.isoformat())
-                        else:
-                            row.append('')
-                            row.append('')
+                        row.append(date_obj.isoformat())
+                    else:
+                        row.append('')
+                        row.append('')
 
-                        row = [s.encode('utf-8') for s in row]
+                    row = [s.encode('utf-8') for s in row]
 
-                        writer.writerow(row)
+                    writer.writerow(row)
 
-                        outfile.flush()
-
-                    index += 5000
+                    outfile.flush()
 
         return filename
     elif generator == 'pdk-app-event':
