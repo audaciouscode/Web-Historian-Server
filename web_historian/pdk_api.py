@@ -1,16 +1,25 @@
 # pylint: disable=no-member,line-too-long
 
+import bz2
 import calendar
-import datetime
 import codecs
 import csv
+import datetime
+import gc
 import json
+import os
 import tempfile
 
-from django.conf import settings
-from django.template.loader import render_to_string
+import StringIO
 
-from passive_data_kit.models import DataPoint, DataSourceReference, DataGeneratorDefinition, install_supports_jsonfield
+from django.conf import settings
+from django.core import management
+from django.db.models import Q
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.text import slugify
+
+from passive_data_kit.models import DataPoint, DataBundle, DataSourceReference, DataGeneratorDefinition, install_supports_jsonfield
 
 PAGE_SIZE = 10000
 
@@ -88,8 +97,8 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
     if generator == 'web-historian':
         filename = tempfile.gettempdir() + '/pdk_' + generator + '.txt'
 
-        for ignore_source in settings.WH_IGNORE_SOURCES:
-            sources.remove(ignore_source)
+        # for ignore_source in settings.WH_IGNORE_SOURCES:
+        #    sources.remove(ignore_source)
 
         with open(filename, 'w') as outfile:
             writer = csv.writer(outfile, delimiter='\t')
@@ -371,3 +380,134 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
         return filename
 
     return None
+
+
+
+def load_backup(filename, content):
+    prefix = 'historian_backup_' + settings.ALLOWED_HOSTS[0]
+
+    if filename.startswith(prefix) is False:
+        return
+
+    if 'json-dumpdata' in filename:
+        filename = filename.replace('.json-dumpdata.bz2.encrypted', '.json')
+
+        path = os.path.join(tempfile.gettempdir(), filename)
+
+        with open(path, 'wb') as fixture_file:
+            fixture_file.write(content)
+
+        management.call_command('loaddata', path)
+
+        os.remove(path)
+    elif 'pdk-bundle' in filename:
+        bundle = DataBundle(recorded=timezone.now())
+
+        if install_supports_jsonfield():
+            bundle.properties = json.loads(content)
+        else:
+            bundle.properties = content
+
+        bundle.save()
+    else:
+        print '[historian.pdk_api.load_backup] Unknown file type: ' + filename
+
+def incremental_backup(parameters): # pylint: disable=too-many-locals
+    to_transmit = []
+    to_clear = []
+
+    # Dump full content of these models. No incremental backup here.
+
+    dumpdata_apps = (
+        'web_historian.ProvidedIdentifier',
+        'web_historian.UrlAction',
+        'web_historian.UrlCategory',
+    )
+
+    prefix = 'historian_backup_' + settings.ALLOWED_HOSTS[0]
+
+    if 'start_date' in parameters:
+        prefix += '_' + parameters['start_date'].isoformat()
+
+    if 'end_date' in parameters:
+        prefix += '_' + parameters['end_date'].isoformat()
+
+    backup_staging = tempfile.gettempdir()
+
+    try:
+        backup_staging = settings.PDK_BACKUP_STAGING_DESTINATION
+    except AttributeError:
+        pass
+
+    for app in dumpdata_apps:
+        print '[historian] Backing up ' + app + '...'
+        buf = StringIO.StringIO()
+        management.call_command('dumpdata', app, stdout=buf)
+        buf.seek(0)
+
+        database_dump = buf.read()
+
+        buf = None
+
+        gc.collect()
+
+        compressed_str = bz2.compress(database_dump)
+
+        database_dump = None
+
+        gc.collect()
+
+        filename = prefix + '_' + slugify(app) + '.json-dumpdata.bz2'
+
+        path = os.path.join(backup_staging, filename)
+
+        with open(path, 'wb') as fixture_file:
+            fixture_file.write(compressed_str)
+
+        to_transmit.append(path)
+
+    # Using parameters, only backup matching DataPoint objects.
+
+    bundle_size = 500
+
+    historian_def = DataGeneratorDefinition.definition_for_identifier('web-historian')
+    behavior_def = DataGeneratorDefinition.definition_for_identifier('web-historian-behavior-metadata')
+
+    query = Q(generator_definition=historian_def) | Q(generator_definition=behavior_def)
+
+    if 'start_date' in parameters:
+        query = query & Q(recorded__gte=parameters['start_date'])
+
+    if 'end_date' in parameters:
+        query = query & Q(recorded__lt=parameters['end_date'])
+
+    count = DataPoint.objects.filter(query).count()
+
+    index = 0
+
+    while index < count:
+        filename = prefix + '_data_points_' + str(index) + '_' + str(count) + '.pdk-bundle.bz2'
+
+        print '[historian] Backing up data points ' + str(index) + ' of ' + str(count) + '...'
+
+        bundle = []
+
+        for point in DataPoint.objects.filter(query).order_by('recorded')[index:(index + bundle_size)]:
+            bundle.append(point.fetch_properties())
+
+        index += bundle_size
+
+        compressed_str = bz2.compress(json.dumps(bundle))
+
+        path = os.path.join(backup_staging, filename)
+
+        with open(path, 'wb') as compressed_file:
+            compressed_file.write(compressed_str)
+
+        to_transmit.append(path)
+
+    return to_transmit, to_clear
+
+
+def clear_points(to_clear): # pylint: disable=unused-argument
+    pass # Don't delete EMA points - these are used for other calculations.
