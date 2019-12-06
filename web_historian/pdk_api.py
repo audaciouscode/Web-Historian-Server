@@ -9,6 +9,7 @@ import gc
 import json
 import os
 import tempfile
+import traceback
 
 import StringIO
 
@@ -100,112 +101,115 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
         # for ignore_source in settings.WH_IGNORE_SOURCES:
         #    sources.remove(ignore_source)
 
-        with open(filename, 'w') as outfile:
-            writer = csv.writer(outfile, delimiter='\t')
+        try:
+            with open(filename, 'w') as outfile:
+                writer = csv.writer(outfile, delimiter='\t')
 
-            writer.writerow(['Source', 'Generator', 'Generator Identifier', 'Created Timestamp', 'Created Date', 'Recorded Timestamp', 'Recorded Date', 'Visit ID', 'URL ID', 'Referrer ID', 'Domain', 'Protocol', 'URL', 'Title', 'Top Domain', 'Search Terms', 'Transition Type', 'Timestamp', 'Date'])
+                writer.writerow(['Source', 'Generator', 'Generator Identifier', 'Created Timestamp', 'Created Date', 'Recorded Timestamp', 'Recorded Date', 'Visit ID', 'URL ID', 'Referrer ID', 'Domain', 'Protocol', 'URL', 'Title', 'Top Domain', 'Search Terms', 'Transition Type', 'Timestamp', 'Date'])
 
-            for source in sources:
-                source_reference = DataSourceReference.reference_for_source(source)
+                for source in sources:
+                    source_reference = DataSourceReference.reference_for_source(source)
 
-                generator_definition = DataGeneratorDefinition.defintion_for_identifier(generator)
+                    generator_definition = DataGeneratorDefinition.definition_for_identifier(generator)
 
-                points = DataPoint.objects.filter(source_reference=source_reference, generator_definition=generator_definition)
+                    points = DataPoint.objects.filter(source_reference=source_reference, generator_definition=generator_definition)
 
-                if data_start is not None:
-                    if date_type == 'recorded':
-                        points = points.filter(recorded__gte=data_start)
-                    else:
-                        points = points.filter(created__gte=data_start)
+                    if data_start is not None:
+                        if date_type == 'recorded':
+                            points = points.filter(recorded__gte=data_start)
+                        else:
+                            points = points.filter(created__gte=data_start)
 
-                if data_end is not None:
-                    if date_type == 'recorded':
-                        points = points.filter(recorded__lte=data_end)
-                    else:
-                        points = points.filter(created__lte=data_end)
+                    if data_end is not None:
+                        if date_type == 'recorded':
+                            points = points.filter(recorded__lte=data_end)
+                        else:
+                            points = points.filter(created__lte=data_end)
 
-                points = points.order_by('source', 'created')
+                    points = points.order_by('source', 'created')
 
-                count = points.count()
+                    count = points.count()
 
-                for point in points.iterator():
-                    row = []
+                    for point in points.iterator():
+                        row = []
 
-                    row.append(point.source)
-                    row.append(point.generator)
-                    row.append(point.generator_identifier)
-                    row.append(str(calendar.timegm(point.created.utctimetuple())))
-                    row.append(point.created.isoformat())
-                    row.append(str(calendar.timegm(point.recorded.utctimetuple())))
-                    row.append(point.recorded.isoformat())
+                        row.append(point.source)
+                        row.append(point.generator)
+                        row.append(point.generator_identifier)
+                        row.append(str(calendar.timegm(point.created.utctimetuple())))
+                        row.append(point.created.isoformat())
+                        row.append(str(calendar.timegm(point.recorded.utctimetuple())))
+                        row.append(point.recorded.isoformat())
 
-                    if 'id' in point.properties:
-                        row.append(str(point.properties['id']))
-                    else:
-                        row.append('')
+                        if 'id' in point.properties:
+                            row.append(str(point.properties['id']))
+                        else:
+                            row.append('')
 
-                    if 'urlId' in point.properties:
-                        row.append(str(point.properties['urlId']))
-                    else:
-                        row.append('')
+                        if 'urlId' in point.properties:
+                            row.append(str(point.properties['urlId']))
+                        else:
+                            row.append('')
 
-                    if 'refVisitId' in point.properties:
-                        row.append(str(point.properties['refVisitId']))
-                    else:
-                        row.append('')
+                        if 'refVisitId' in point.properties:
+                            row.append(str(point.properties['refVisitId']))
+                        else:
+                            row.append('')
 
-                    if 'domain' in point.properties:
-                        row.append(point.properties['domain'])
-                    else:
-                        row.append('')
+                        if 'domain' in point.properties:
+                            row.append(point.properties['domain'])
+                        else:
+                            row.append('')
 
-                    if 'protocol' in point.properties:
-                        row.append(point.properties['protocol'])
-                    else:
-                        row.append('')
+                        if 'protocol' in point.properties:
+                            row.append(point.properties['protocol'])
+                        else:
+                            row.append('')
 
-                    if 'url' in point.properties:
-                        row.append(point.properties['url'])
-                    else:
-                        row.append('')
+                        if 'url' in point.properties:
+                            row.append(point.properties['url'])
+                        else:
+                            row.append('')
 
-                    if 'title' in point.properties:
-                        row.append(point.properties['title'])
-                    else:
-                        row.append('')
+                        if 'title' in point.properties:
+                            row.append(point.properties['title'])
+                        else:
+                            row.append('')
 
-                    if 'topDomain' in point.properties:
-                        row.append(point.properties['topDomain'])
-                    else:
-                        row.append('')
+                        if 'topDomain' in point.properties:
+                            row.append(point.properties['topDomain'])
+                        else:
+                            row.append('')
 
-                    if 'searchTerms' in point.properties:
-                        row.append(point.properties['searchTerms'])
-                    else:
-                        row.append('')
+                        if 'searchTerms' in point.properties:
+                            row.append(point.properties['searchTerms'])
+                        else:
+                            row.append('')
 
-                    if 'transType' in point.properties:
-                        row.append(point.properties['transType'])
-                    else:
-                        row.append('')
+                        if 'transType' in point.properties:
+                            row.append(point.properties['transType'])
+                        else:
+                            row.append('')
 
-                    if 'date' in point.properties:
-                        timestamp = float(point.properties['date']) / 1000
+                        if 'date' in point.properties:
+                            timestamp = float(point.properties['date']) / 1000
 
-                        row.append(str(timestamp))
+                            row.append(str(timestamp))
 
-                        date_obj = datetime.datetime.utcfromtimestamp(timestamp)
+                            date_obj = datetime.datetime.utcfromtimestamp(timestamp)
 
-                        row.append(date_obj.isoformat())
-                    else:
-                        row.append('')
-                        row.append('')
+                            row.append(date_obj.isoformat())
+                        else:
+                            row.append('')
+                            row.append('')
 
-                    row = [s.encode('utf-8') for s in row]
+                        row = [s.encode('utf-8') for s in row]
 
-                    writer.writerow(row)
+                        writer.writerow(row)
 
-                    outfile.flush()
+                        outfile.flush()
+        except: # pylint: disable=bare-except
+            traceback.print_exc()
 
         return filename
     elif generator == 'pdk-app-event':
@@ -228,7 +232,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
 
             for source in sources:
                 source_reference = DataSourceReference.reference_for_source(source)
-                generator_definition = DataGeneratorDefinition.defintion_for_identifier(generator)
+                generator_definition = DataGeneratorDefinition.definition_for_identifier(generator)
 
                 points = DataPoint.objects.filter(source_reference=source_reference, generator_definition=generator_definition)
 
@@ -314,7 +318,7 @@ def compile_report(generator, sources, data_start=None, data_end=None, date_type
 
             for source in sources:
                 source_reference = DataSourceReference.reference_for_source(source)
-                generator_definition = DataGeneratorDefinition.defintion_for_identifier(generator)
+                generator_definition = DataGeneratorDefinition.definition_for_identifier(generator)
 
                 points = DataPoint.objects.filter(source_reference=source_reference, generator_definition=generator_definition)
 
