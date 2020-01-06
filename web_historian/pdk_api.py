@@ -416,7 +416,7 @@ def load_backup(filename, content):
     else:
         print '[historian.pdk_api.load_backup] Unknown file type: ' + filename
 
-def incremental_backup(parameters): # pylint: disable=too-many-locals
+def incremental_backup(parameters): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
     to_transmit = []
     to_clear = []
 
@@ -472,43 +472,80 @@ def incremental_backup(parameters): # pylint: disable=too-many-locals
 
     # Using parameters, only backup matching DataPoint objects.
 
-    bundle_size = 500
+    bundle_size = 10000
+    increment_minutes = 15
 
     historian_def = DataGeneratorDefinition.definition_for_identifier('web-historian')
     behavior_def = DataGeneratorDefinition.definition_for_identifier('web-historian-behavior-metadata')
 
     query = Q(generator_definition=historian_def) | Q(generator_definition=behavior_def)
 
-    if 'start_date' in parameters:
-        query = query & Q(recorded__gte=parameters['start_date'])
+    if ('start_date' in parameters) and ('end_date' in parameters):
+        slice_date = parameters['start_date']
 
-    if 'end_date' in parameters:
-        query = query & Q(recorded__lt=parameters['end_date'])
+        while slice_date < parameters['end_date']:
+            slice_end = slice_date + datetime.timedelta(minutes=increment_minutes)
 
-    count = DataPoint.objects.filter(query).count()
+            slice_query = query & Q(recorded__gte=slice_date, recorded__lt=slice_end)
 
-    index = 0
+            count = DataPoint.objects.filter(slice_query).count()
 
-    while index < count:
-        filename = prefix + '_data_points_' + str(index) + '_' + str(count) + '.pdk-bundle.bz2'
+            index = 0
 
-        print '[historian] Backing up data points ' + str(index) + ' of ' + str(count) + '...'
+            while index < count:
+                filename = prefix + '_data_points_' + slice_date.isoformat() + '_' + str(increment_minutes) + 'min_' + str(index) + '_' + str(count) + '.pdk-bundle.bz2'
 
-        bundle = []
+                print '[historian] Backing up data points ' + str(index) + ' of ' + str(count) + ' [' + slice_date.isoformat() + ' / ' + str(increment_minutes) + ' min. slice]...'
 
-        for point in DataPoint.objects.filter(query).order_by('recorded')[index:(index + bundle_size)]:
-            bundle.append(point.fetch_properties())
+                bundle = []
 
-        index += bundle_size
+                for point in DataPoint.objects.filter(query).order_by('recorded')[index:(index + bundle_size)]:
+                    bundle.append(point.fetch_properties())
 
-        compressed_str = bz2.compress(json.dumps(bundle))
+                index += bundle_size
 
-        path = os.path.join(backup_staging, filename)
+                compressed_str = bz2.compress(json.dumps(bundle))
 
-        with open(path, 'wb') as compressed_file:
-            compressed_file.write(compressed_str)
+                path = os.path.join(backup_staging, filename)
 
-        to_transmit.append(path)
+                with open(path, 'wb') as compressed_file:
+                    compressed_file.write(compressed_str)
+
+                to_transmit.append(path)
+
+            slice_date = slice_end
+
+    else:
+        if 'start_date' in parameters:
+            query = query & Q(recorded__gte=parameters['start_date'])
+
+        if 'end_date' in parameters:
+            query = query & Q(recorded__lt=parameters['end_date'])
+
+        count = DataPoint.objects.filter(query).count()
+
+        index = 0
+
+        while index < count:
+            filename = prefix + '_data_points_' + str(index) + '_' + str(count) + '.pdk-bundle.bz2'
+
+            print '[historian] Backing up data points ' + str(index) + ' of ' + str(count) + '...'
+
+            bundle = []
+
+            for point in DataPoint.objects.filter(query).order_by('recorded')[index:(index + bundle_size)]:
+                bundle.append(point.fetch_properties())
+
+            index += bundle_size
+
+            compressed_str = bz2.compress(json.dumps(bundle))
+
+            path = os.path.join(backup_staging, filename)
+
+            with open(path, 'wb') as compressed_file:
+                compressed_file.write(compressed_str)
+
+            to_transmit.append(path)
 
     return to_transmit, to_clear
 
