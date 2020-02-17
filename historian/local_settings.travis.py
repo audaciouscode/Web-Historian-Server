@@ -1,7 +1,7 @@
 import os
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'CHANGEME'
+SECRET_KEY = 'CHANGEME' #nosec
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
